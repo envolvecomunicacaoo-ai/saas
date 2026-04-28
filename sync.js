@@ -36,6 +36,24 @@
     return;
   }
 
+  // ===== Auth header helper =====
+  function authHeaders(extra){
+    const t = window.envolveAuthToken || localStorage.getItem('envolve.auth.token');
+    const base = extra ? { ...extra } : {};
+    if (t) base['Authorization'] = 'Bearer ' + t;
+    return base;
+  }
+
+  function handleAuthError(res){
+    if (res && res.status === 401) {
+      // Token inválido — força login
+      localStorage.removeItem('envolve.auth.token');
+      location.replace('login.html');
+      return true;
+    }
+    return false;
+  }
+
   // ===== Loading overlay =====
   const overlay = document.createElement('div');
   overlay.id = 'envolve-sync-overlay';
@@ -80,11 +98,12 @@
     pendingPushes.clear();
     for (const [key, value] of items) {
       try {
-        await fetch(`${API}?key=${encodeURIComponent(key)}`, {
+        const res = await fetch(`${API}?key=${encodeURIComponent(key)}`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: authHeaders({ 'Content-Type': 'application/json' }),
           body: value || 'null'
         });
+        if (handleAuthError(res)) return;
         // Marca último push pra mostrar na UI
         window.envolveLastPush = { key, at: Date.now() };
       } catch (e) {
@@ -115,7 +134,8 @@
     setOverlayMsg('Buscando dados da equipe...');
     try {
       const url = `${API}?batch=1&keys=${SHARED_KEYS.map(encodeURIComponent).join(',')}`;
-      const r = await fetch(url);
+      const r = await fetch(url, { headers: authHeaders() });
+      if (handleAuthError(r)) return 0;
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       const data = await r.json();
       let count = 0;
@@ -141,11 +161,12 @@
               if (seed[key]) {
                 origSet.call(localStorage, key, JSON.stringify(seed[key]));
                 // Push pro cloud
-                await fetch(`${API}?key=${encodeURIComponent(key)}`, {
+                const pushRes = await fetch(`${API}?key=${encodeURIComponent(key)}`, {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: authHeaders({ 'Content-Type': 'application/json' }),
                   body: JSON.stringify(seed[key])
                 });
+                if (handleAuthError(pushRes)) return count;
                 count++;
               }
             }
@@ -186,11 +207,18 @@
   });
 
   // Auto-flush ao sair (envia tudo que ficou pendente)
+  // Usa fetch com keepalive — sendBeacon não suporta headers customizados
   window.addEventListener('beforeunload', () => {
-    if (pendingPushes.size && navigator.sendBeacon) {
-      for (const [key, value] of pendingPushes.entries()) {
-        navigator.sendBeacon(`${API}?key=${encodeURIComponent(key)}`, value || 'null');
-      }
+    if (!pendingPushes.size) return;
+    for (const [key, value] of pendingPushes.entries()) {
+      try {
+        fetch(`${API}?key=${encodeURIComponent(key)}`, {
+          method: 'POST',
+          headers: authHeaders({ 'Content-Type': 'application/json' }),
+          body: value || 'null',
+          keepalive: true
+        });
+      } catch (e) { /* página tá saindo, ignora */ }
     }
   });
 

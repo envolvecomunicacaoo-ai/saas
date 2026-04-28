@@ -16,6 +16,19 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
 
+  const expected = process.env.TEAM_PASSWORD;
+  if (expected) {
+    const auth = event.headers.authorization || event.headers.Authorization || '';
+    const reqToken = auth.replace(/^Bearer\s+/i, '').trim();
+    if (reqToken !== expected) {
+      return {
+        statusCode: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'unauthorized' })
+      };
+    }
+  }
+
   const token = event.headers['x-kommo-token'] || event.headers['X-Kommo-Token'];
   const subdomain = event.headers['x-kommo-subdomain'] || event.headers['X-Kommo-Subdomain'];
   const path = event.queryStringParameters?.path || '/';

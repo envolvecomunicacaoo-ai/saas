@@ -6,13 +6,26 @@
 exports.handler = async (event) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, X-Asaas-Key, X-Asaas-Env',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Asaas-Key, X-Asaas-Env',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Max-Age': '86400'
   };
 
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
+  }
+
+  const expected = process.env.TEAM_PASSWORD;
+  if (expected) {
+    const auth = event.headers.authorization || event.headers.Authorization || '';
+    const token = auth.replace(/^Bearer\s+/i, '').trim();
+    if (token !== expected) {
+      return {
+        statusCode: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ error: 'unauthorized' })
+      };
+    }
   }
 
   const apiKey = event.headers['x-asaas-key'] || event.headers['X-Asaas-Key'];

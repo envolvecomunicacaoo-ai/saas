@@ -2,24 +2,48 @@
 // GET /.netlify/functions/store?key=NOME → retorna valor (json ou null)
 // GET /.netlify/functions/store?batch=1&keys=a,b,c → retorna {a:..., b:..., c:...}
 // POST /.netlify/functions/store?key=NOME → salva o body (JSON)
+// Requer: header `Authorization: Bearer <TEAM_PASSWORD>` (se TEAM_PASSWORD env var estiver setada)
 
 const { getStore } = require('@netlify/blobs');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
   'Access-Control-Max-Age': '86400'
 };
+
+function authReject(event) {
+  const expected = process.env.TEAM_PASSWORD;
+  if (!expected) return null;
+  const auth = event.headers.authorization || event.headers.Authorization || '';
+  const token = auth.replace(/^Bearer\s+/i, '').trim();
+  if (token !== expected) {
+    return {
+      statusCode: 401,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'unauthorized' })
+    };
+  }
+  return null;
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
 
+  const reject = authReject(event);
+  if (reject) return reject;
+
   let store;
   try {
-    store = getStore({ name: 'envolve-data', consistency: 'strong' });
+    const blobsConfig = { name: 'envolve-data', consistency: 'strong' };
+    if (process.env.NETLIFY_BLOBS_SITE_ID && process.env.NETLIFY_BLOBS_TOKEN) {
+      blobsConfig.siteID = process.env.NETLIFY_BLOBS_SITE_ID;
+      blobsConfig.token = process.env.NETLIFY_BLOBS_TOKEN;
+    }
+    store = getStore(blobsConfig);
   } catch (e) {
     return {
       statusCode: 500,
