@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="sync.js"></script>
+<title>Envolve · ClickUp</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --surface:#111827; --surface-2:#1a2233; --border:#252f44;
+    --text:#e8ecf3; --text-dim:#8b95a8; --text-muted:#5c6680;
+    --accent:#7B68EE; --accent-2:#FF7FAB; --clickup:#7B68EE;
+    --success:#10b981; --warning:#f59e0b; --danger:#ef4444; --info:#06b6d4;
+    --p-urgent:#ef4444; --p-high:#f59e0b; --p-normal:#06b6d4; --p-low:#94a3b8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;background-image:radial-gradient(circle at 0% 0%,rgba(123,104,238,.10),transparent 50%),radial-gradient(circle at 100% 100%,rgba(255,127,171,.06),transparent 50%);background-attachment:fixed}
+  .app{max-width:1500px;margin:0 auto;padding:24px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:14px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--clickup),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:white}
+  .brand h1{font-size:18px;font-weight:600;letter-spacing:-.01em}
+  .brand p{font-size:12px;color:var(--text-dim);margin-top:2px}
+  .header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .badge{font-size:11px;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim)}
+  .badge.ok{border-color:rgba(16,185,129,.4);color:var(--success)}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+  .card h2{font-size:14px;font-weight:600;margin-bottom:14px;letter-spacing:-.01em;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .card h2 .sub{font-size:11px;color:var(--text-muted);font-weight:400;text-transform:uppercase;letter-spacing:.05em}
+
+  .btn{padding:10px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);cursor:pointer;font-weight:500;font-size:13px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:#222e44;border-color:#3a4660}
+  .btn-primary{background:linear-gradient(135deg,var(--clickup),var(--accent-2));border-color:transparent;color:white}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-danger{background:transparent;color:var(--danger);border-color:rgba(239,68,68,.3)}
+  .btn-ghost{background:transparent}
+  .btn-sm{padding:6px 12px;font-size:12px}
+
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .form-group{display:flex;flex-direction:column;gap:6px}
+  .form-group label{font-size:11px;color:var(--text-dim);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+  .form-group input,.form-group select,.form-group textarea{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;font-family:inherit}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--clickup);box-shadow:0 0 0 3px rgba(123,104,238,.15)}
+  .form-group textarea{resize:vertical;min-height:80px}
+
+  .setup-card{background:linear-gradient(135deg,rgba(123,104,238,.08),rgba(255,127,171,.05));border:1px solid rgba(123,104,238,.3);border-radius:14px;padding:24px;margin-bottom:14px}
+  .setup-card h3{font-size:16px;margin-bottom:6px}
+  .setup-card p{font-size:13px;color:var(--text-dim);margin-bottom:14px;line-height:1.6}
+  .setup-steps{font-size:12px;color:var(--text-dim);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px}
+  .setup-steps ol{margin-left:20px;line-height:1.8}
+  .setup-steps a{color:var(--clickup)}
+  .setup-steps code{background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px;color:var(--clickup)}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;border-top:3px solid var(--c-accent,var(--clickup))}
+  .kpi-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:6px}
+  .kpi-value{font-size:22px;font-weight:700;letter-spacing:-.02em}
+
+  /* === Layout 2 colunas: Sidebar + Tasks === */
+  .layout{display:grid;grid-template-columns:240px 1fr;gap:14px;align-items:flex-start}
+  @media(max-width:768px){ .layout{grid-template-columns:1fr} }
+
+  /* Sidebar de Listas */
+  .sidebar{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;position:sticky;top:14px}
+  .sidebar h3{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+  .sb-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;transition:all .12s;color:var(--text);font-size:13px;margin-bottom:2px;background:transparent;border:none;width:100%;text-align:left;font-family:inherit}
+  .sb-item:hover{background:var(--surface-2)}
+  .sb-item.active{background:rgba(123,104,238,.15);color:var(--clickup);font-weight:600}
+  .sb-item .icon{width:20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:white;flex-shrink:0;background:var(--c-list,var(--clickup))}
+  .sb-item .name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sb-item .count{font-size:11px;color:var(--text-dim);font-weight:500}
+  .sb-item.active .count{color:var(--clickup);font-weight:700}
+  .sb-action{margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+
+  /* Filtros */
+  .filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .filters select,.filters input{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;font-family:inherit}
+
+  /* Task list */
+  .task-list{display:flex;flex-direction:column;gap:6px}
+  .task-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:auto 4px 1fr auto auto auto auto;gap:12px;align-items:center;border-left:3px solid var(--c-priority,var(--text-muted));transition:all .15s}
+  .task-row:hover{transform:translateY(-1px);border-color:#3a4660}
+  .task-status{font-size:10px;padding:3px 8px;border-radius:99px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:white;white-space:nowrap}
+  .task-name{font-size:13px;font-weight:500;line-height:1.4}
+  .task-name a{color:var(--text);text-decoration:none}
+  .task-name a:hover{color:var(--clickup);text-decoration:underline}
+  .task-meta{font-size:11px;color:var(--text-dim);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap}
+  .task-due{font-size:11px;text-align:center;padding:3px 8px;border-radius:6px;background:var(--surface-2);color:var(--text-dim);white-space:nowrap}
+  .task-due.urgent{background:rgba(239,68,68,.15);color:var(--danger)}
+  .task-due.soon{background:rgba(245,158,11,.15);color:var(--warning)}
+  .task-priority{font-size:18px;line-height:1}
+  .task-assignee{display:flex;align-items:center;gap:4px;max-width:120px}
+  .task-assignee .avatar{width:22px;height:22px;border-radius:50%;background:var(--surface-2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;color:white;border:1px solid var(--border)}
+  .task-assignee .name{font-size:11px;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .task-list-name{font-size:10px;color:var(--text-muted);background:var(--surface-2);padding:2px 8px;border-radius:99px;white-space:nowrap}
+
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);padding:12px 18px;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.3);font-size:13px;font-weight:500;transform:translateY(120%);transition:.25s ease;z-index:300}
+  .toast.show{transform:translateY(0)}
+  .toast.success{border-color:var(--success)}
+  .toast.success::before{content:"✓";color:var(--success);font-weight:700;margin-right:6px}
+  .toast.error{border-color:var(--danger)}
+  .toast.error::before{content:"!";color:var(--danger);font-weight:700;margin-right:6px}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
+  .modal-bg.show{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:560px;width:90%;max-height:90vh;overflow-y:auto}
+  .modal h3{font-size:16px;margin-bottom:14px;font-weight:600}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+
+  .empty-state{text-align:center;padding:40px;color:var(--text-dim)}
+  .empty-state .icon{font-size:36px;margin-bottom:10px}
+
+  .loading{display:inline-block;width:14px;height:14px;border:2px solid var(--text-dim);border-top-color:var(--clickup);border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  @media(max-width:768px){
+    .app{padding:14px}
+    .task-row{grid-template-columns:auto 1fr auto;gap:8px}
+    .task-row .task-meta,.task-row .task-due,.task-row .task-list-name{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">CU</div>
+      <div>
+        <h1>Envolve · ClickUp</h1>
+        <p>Tarefas, listas e operação consolidada</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="./" style="font-size:12px;padding:6px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);text-decoration:none;display:inline-flex;align-items:center;gap:6px">← Envolve</a>
+      <span class="badge" id="connStatus">Não conectado</span>
+      <button class="btn btn-sm" id="newTaskBtn" style="display:none">+ Nova tarefa</button>
+      <button class="btn btn-sm" id="refreshBtn" style="display:none">↻ Atualizar</button>
+      <button class="btn btn-sm" id="openSetup">⚙ Token</button>
+    </div>
+  </header>
+
+  <div id="content"></div>
+</div>
+
+<div class="modal-bg" id="modal"><div class="modal" id="modalContent"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'envolve.clickup.v1';
+const CU_API = 'https://api.clickup.com/api/v2';
+
+let state = { token:'', selectedTeam:'', tasks:[], teams:[], me:null, lastSync:'', selectedList:'all', cachedSpaces:[] };
+
+function load(){ try{ Object.assign(state, JSON.parse(localStorage.getItem(STORAGE_KEY))||{}); }catch(e){} }
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+const fmtNum = v => (v||0).toLocaleString('pt-BR');
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg,type='success'){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>t.classList.remove('show'),3000); }
+function openModal(html){ document.getElementById('modalContent').innerHTML=html; document.getElementById('modal').classList.add('show'); }
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
+
+function isConnected(){ return state.token && state.token.length>15; }
+function updateConnStatus(){
+  const b = document.getElementById('connStatus');
+  if(isConnected() && state.selectedTeam){
+    const t = state.teams.find(x=>x.id===state.selectedTeam);
+    b.className='badge ok'; b.textContent = 'Conectado: '+(t?.name||'workspace');
+    document.getElementById('refreshBtn').style.display = 'inline-flex';
+    document.getElementById('newTaskBtn').style.display = 'inline-flex';
+  } else if(isConnected()){
+    b.className='badge ok'; b.textContent = 'Token OK';
+    document.getElementById('refreshBtn').style.display = 'none';
+    document.getElementById('newTaskBtn').style.display = 'none';
+  } else {
+    b.className='badge'; b.textContent = 'Não conectado';
+    document.getElementById('refreshBtn').style.display = 'none';
+    document.getElementById('newTaskBtn').style.display = 'none';
+  }
+}
+
+// === SETUP TOKEN ===
+document.getElementById('openSetup').addEventListener('click',()=>{
+  openModal(`
+    <h3>⚙ Configurar token ClickUp</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Cole sua Personal API Token. Pega em ClickUp → Settings → Apps → Generate.</p>
+    <div style="font-size:12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px;line-height:1.6">
+      <strong>Onde encontrar:</strong><br>
+      1. Abra ClickUp → avatar (canto inferior esq) → <strong>Settings</strong><br>
+      2. Menu → <strong>Apps</strong><br>
+      3. Em "API Token" → <strong>Generate</strong> e copie<br>
+      4. Token começa com <code style="background:var(--bg);padding:1px 5px;border-radius:3px">pk_</code>
+    </div>
+    <div class="form-group">
+      <label>API Token</label>
+      <input type="password" id="cfg-token" value="${escapeHtml(state.token||'')}" placeholder="pk_..." autocomplete="off">
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:14px">Token salvo apenas no navegador. Cada chamada vai direto pra api.clickup.com.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-danger" id="cfg-clear">Limpar</button>
+      <button class="btn btn-primary" id="cfg-save">Salvar</button>
+    </div>
+  `);
+  document.getElementById('cfg-save').addEventListener('click',()=>{
+    const t = document.getElementById('cfg-token').value.trim();
+    if(!t || t.length<15){ toast('Token muito curto','error'); return; }
+    state.token = t; state.selectedTeam=''; state.teams=[]; state.tasks=[]; state.cachedSpaces=[];
+    save(); closeModal(); updateConnStatus(); render();
+  });
+  document.getElementById('cfg-clear').addEventListener('click',()=>{
+    state = {token:'',selectedTeam:'',tasks:[],teams:[],me:null,lastSync:'',selectedList:'all',cachedSpaces:[]};
+    save(); closeModal(); updateConnStatus(); render();
+  });
+});
+
+document.getElementById('refreshBtn').addEventListener('click',()=>{ if(state.selectedTeam) loadTasks(); });
+document.getElementById('newTaskBtn').addEventListener('click',()=>openTaskModal());
+
+function render(){
+  const c = document.getElementById('content');
+  if(!isConnected()){
+    c.innerHTML = `
+      <div class="setup-card">
+        <h3>Conecte sua conta ClickUp</h3>
+        <p>Pra puxar tarefas, listas e prazos, preciso de uma <strong>Personal API Token</strong>.</p>
+        <div class="setup-steps">
+          <strong>Como pegar (2 minutos):</strong>
+          <ol>
+            <li>Abra <a href="https://app.clickup.com/" target="_blank">ClickUp</a></li>
+            <li>Avatar (canto inferior esq) → <strong>Settings</strong></li>
+            <li>Menu → <strong>Apps</strong></li>
+            <li>"API Token" → <strong>Generate</strong></li>
+            <li>Copie o token (começa com <code>pk_</code>)</li>
+          </ol>
+        </div>
+        <button class="btn btn-primary" onclick="document.getElementById('openSetup').click()">⚙ Configurar agora</button>
+      </div>
+    `;
+    return;
+  }
+  if(!state.teams.length){
+    c.innerHTML = `<div class="card"><div class="empty-state"><span class="loading"></span> Carregando workspaces...</div></div>`;
+    fetchTeams();
+    return;
+  }
+  if(!state.selectedTeam){
+    c.innerHTML = `
+      <div class="card">
+        <h2>Selecione o workspace</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px">
+          ${state.teams.map(t=>`<button class="btn" style="padding:14px;text-align:left;height:auto;display:flex;align-items:center;justify-content:space-between" data-team="${t.id}"><div><div style="font-weight:600">${escapeHtml(t.name)}</div><div style="font-size:11px;color:var(--text-dim);margin-top:2px">${t.members?.length||0} membros</div></div><span style="color:var(--clickup)">→</span></button>`).join('')}
+        </div>
+      </div>`;
+    c.querySelectorAll('[data-team]').forEach(b=> b.addEventListener('click',()=>{
+      state.selectedTeam = b.dataset.team; save(); updateConnStatus(); render();
+    }));
+    return;
+  }
+  if(!state.tasks.length){
+    c.innerHTML = `<div class="card"><div class="empty-state"><span class="loading"></span> Carregando tarefas...</div></div>`;
+    loadTasks();
+    return;
+  }
+  renderTasks();
+}
+
+async function fetchTeams(){
+  try{
+    const res = await fetch(`${CU_API}/team`,{headers:{'Authorization':state.token,'Content-Type':'application/json'}});
+    if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.err||`HTTP ${res.status}`); }
+    const data = await res.json();
+    state.teams = data.teams || [];
+    save();
+    if(state.teams.length===1){ state.selectedTeam = state.teams[0].id; save(); }
+    render();
+  }catch(err){
+    document.getElementById('content').innerHTML = `<div class="card"><div class="empty-state" style="color:var(--danger)"><strong>Erro:</strong> ${escapeHtml(err.message)}</div></div>`;
+  }
+}
+
+async function loadTasks(){
+  try{
+    const params = new URLSearchParams({page:'0',order_by:'updated',reverse:'true',include_closed:'false',subtasks:'true'});
+    const res = await fetch(`${CU_API}/team/${state.selectedTeam}/task?${params}`,{headers:{'Authorization':state.token,'Content-Type':'application/json'}});
+    if(!res.ok){ const e=await res.json().catch(()=>({})); throw new Error(e.err||`HTTP ${res.status}`); }
+    const data = await res.json();
+    state.tasks = data.tasks || [];
+    state.lastSync = new Date().toISOString();
+    save(); render();
+    toast(`${state.tasks.length} tarefas carregadas`);
+  }catch(err){
+    document.getElementById('content').innerHTML = `<div class="card"><div class="empty-state" style="color:var(--danger)"><strong>Erro:</strong> ${escapeHtml(err.message)}</div></div>`;
+  }
+}
+
+function isClosedStatus(s){ return /closed|done|complete|conclu|finaliz/i.test(s||''); }
+const PRIO_MAP = {1:{label:'Urgent',color:'var(--p-urgent)',icon:'🔥'},2:{label:'High',color:'var(--p-high)',icon:'⬆'},3:{label:'Normal',color:'var(--p-normal)',icon:'•'},4:{label:'Low',color:'var(--p-low)',icon:'⬇'}};
+
+// Mapeia ícones simbólicos pra cada nome de lista comum
+function listIcon(name){
+  const n = (name||'').toLowerCase();
+  if(/comerc/.test(n)) return '💰';
+  if(/atendi|suport/.test(n)) return '☰';
+  if(/social/.test(n)) return '👤';
+  if(/design/.test(n)) return '🎨';
+  if(/v[ií]deo/.test(n)) return '🎬';
+  if(/tr[áa]feg|m[íi]dia/.test(n)) return '📈';
+  if(/site|web/.test(n)) return '🌐';
+  if(/copy|conte[úu]do/.test(n)) return '✍';
+  if(/prospec|venda/.test(n)) return '🎯';
+  if(/financ/.test(n)) return '$';
+  return '📋';
+}
+function listColor(name){
+  const colors = ['#7B68EE','#FF7FAB','#10b981','#f59e0b','#ef4444','#06b6d4','#a855f7','#84cc16','#0A66C2','#ec4899','#14b8a6','#f97316'];
+  let h = 0;
+  for(let i=0;i<(name||'').length;i++) h = (h*31+name.charCodeAt(i))>>>0;
+  return colors[h%colors.length];
+}
+
+function renderTasks(){
+  const total = state.tasks.length;
+  const overdue = state.tasks.filter(t=> t.due_date && +t.due_date < Date.now() && !isClosedStatus(t.status?.status)).length;
+  const dueWeek = state.tasks.filter(t=> t.due_date && +t.due_date >= Date.now() && +t.due_date < Date.now()+7*86400000).length;
+  const inProgress = state.tasks.filter(t=> t.status?.type==='in_progress' || /(progress|doing|atende|execu|fazendo)/i.test(t.status?.status||'')).length;
+  const urgent = state.tasks.filter(t=> +t.priority?.priority===1).length;
+
+  // Agrupa por lista
+  const lists = {};
+  state.tasks.forEach(t=>{
+    if(!t.list?.id) return;
+    const id = t.list.id;
+    if(!lists[id]) lists[id] = {id, name:t.list.name, count:0};
+    lists[id].count++;
+  });
+  const listsArr = Object.values(lists).sort((a,b)=>b.count-a.count);
+
+  // Status & assignees pra filtros
+  const statuses = [...new Set(state.tasks.map(t=>t.status?.status).filter(Boolean))];
+  const assignees = {};
+  state.tasks.forEach(t=> (t.assignees||[]).forEach(a=>{ assignees[a.id] = a; }));
+
+  document.getElementById('content').innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi" style="--c-accent:var(--clickup)"><div class="kpi-label">Total</div><div class="kpi-value">${fmtNum(total)}</div></div>
+      <div class="kpi" style="--c-accent:var(--p-urgent)"><div class="kpi-label">Vencidas</div><div class="kpi-value" style="color:var(--danger)">${fmtNum(overdue)}</div></div>
+      <div class="kpi" style="--c-accent:var(--warning)"><div class="kpi-label">7 dias</div><div class="kpi-value">${fmtNum(dueWeek)}</div></div>
+      <div class="kpi" style="--c-accent:var(--info)"><div class="kpi-label">Em progresso</div><div class="kpi-value">${fmtNum(inProgress)}</div></div>
+      <div class="kpi" style="--c-accent:var(--p-urgent)"><div class="kpi-label">Urgentes</div><div class="kpi-value">${fmtNum(urgent)}</div></div>
+      <div class="kpi" style="--c-accent:var(--success)"><div class="kpi-label">Listas</div><div class="kpi-value">${fmtNum(listsArr.length)}</div></div>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <h3>Listas</h3>
+        <button class="sb-item ${state.selectedList==='all'?'active':''}" data-list="all">
+          <span class="icon" style="--c-list:var(--clickup)">⚙</span>
+          <span class="name">Todas as tarefas</span>
+          <span class="count">${total}</span>
+        </button>
+        ${listsArr.map(l=>`
+          <button class="sb-item ${state.selectedList===l.id?'active':''}" data-list="${l.id}">
+            <span class="icon" style="--c-list:${listColor(l.name)}">${listIcon(l.name)}</span>
+            <span class="name">${escapeHtml(l.name)}</span>
+            <span class="count">${l.count}</span>
+          </button>
+        `).join('')}
+        <div class="sb-action">
+          <button class="btn btn-sm btn-primary" id="newTaskSidebar" style="width:100%;justify-content:center">+ Nova tarefa</button>
+        </div>
+      </aside>
+
+      <div>
+        <div class="card">
+          <div class="filters" style="margin-bottom:0">
+            <input type="text" id="filterText" placeholder="🔍 Buscar..." style="flex:1;min-width:180px">
+            <select id="filterStatus">
+              <option value="all">Todos status</option>
+              ${statuses.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('')}
+            </select>
+            <select id="filterPriority">
+              <option value="all">Prioridades</option>
+              <option value="1">Urgent</option>
+              <option value="2">High</option>
+              <option value="3">Normal</option>
+              <option value="4">Low</option>
+            </select>
+            <select id="filterAssignee">
+              <option value="all">Todos resp.</option>
+              ${Object.values(assignees).map(a=>`<option value="${a.id}">${escapeHtml(a.username||a.email||'?')}</option>`).join('')}
+            </select>
+            <select id="filterDue">
+              <option value="all">Prazo</option>
+              <option value="overdue">Vencidas</option>
+              <option value="today">Hoje</option>
+              <option value="week">7 dias</option>
+              <option value="nodate">Sem data</option>
+            </select>
+            <select id="sortBy">
+              <option value="updated">Recentes</option>
+              <option value="due">Por prazo</option>
+              <option value="priority">Prioridade</option>
+              <option value="name">Nome</option>
+            </select>
+            <span style="margin-left:auto;font-size:12px;color:var(--text-dim)" id="filterCount"></span>
+          </div>
+        </div>
+        <div class="task-list" id="taskList"></div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('newTaskSidebar').addEventListener('click',()=>openTaskModal());
+  document.querySelectorAll('[data-list]').forEach(b=> b.addEventListener('click',()=>{
+    state.selectedList = b.dataset.list; save(); renderTasks();
+  }));
+  ['filterText','filterStatus','filterPriority','filterAssignee','filterDue','sortBy'].forEach(id=>{
+    document.getElementById(id).addEventListener('input',renderTaskList);
+    document.getElementById(id).addEventListener('change',renderTaskList);
+  });
+  renderTaskList();
+}
+
+function renderTaskList(){
+  const text = document.getElementById('filterText').value.toLowerCase();
+  const fStatus = document.getElementById('filterStatus').value;
+  const fPrio = document.getElementById('filterPriority').value;
+  const fAss = document.getElementById('filterAssignee').value;
+  const fDue = document.getElementById('filterDue').value;
+  const sortBy = document.getElementById('sortBy').value;
+  const today0 = new Date(); today0.setHours(0,0,0,0);
+  const todayEnd = today0.getTime()+86400000;
+
+  let filtered = state.tasks.filter(t=>{
+    if(state.selectedList!=='all' && t.list?.id !== state.selectedList) return false;
+    if(text && !((t.name||'').toLowerCase().includes(text) || (t.description||'').toLowerCase().includes(text))) return false;
+    if(fStatus!=='all' && t.status?.status !== fStatus) return false;
+    if(fPrio!=='all' && String(t.priority?.priority) !== fPrio) return false;
+    if(fAss!=='all' && !(t.assignees||[]).some(a=>String(a.id)===fAss)) return false;
+    if(fDue==='overdue' && (!t.due_date || +t.due_date >= Date.now() || isClosedStatus(t.status?.status))) return false;
+    if(fDue==='today' && (!t.due_date || +t.due_date < today0.getTime() || +t.due_date >= todayEnd)) return false;
+    if(fDue==='week' && (!t.due_date || +t.due_date < Date.now() || +t.due_date >= Date.now()+7*86400000)) return false;
+    if(fDue==='nodate' && t.due_date) return false;
+    return true;
+  });
+
+  filtered.sort((a,b)=>{
+    if(sortBy==='due'){
+      if(!a.due_date && !b.due_date) return 0;
+      if(!a.due_date) return 1; if(!b.due_date) return -1;
+      return +a.due_date - +b.due_date;
+    }
+    if(sortBy==='priority'){
+      const pa = +a.priority?.priority || 99, pb = +b.priority?.priority || 99;
+      return pa-pb;
+    }
+    if(sortBy==='name') return (a.name||'').localeCompare(b.name||'');
+    return +b.date_updated - +a.date_updated;
+  });
+
+  document.getElementById('filterCount').textContent = `${filtered.length} de ${state.tasks.length}`;
+
+  const list = document.getElementById('taskList');
+  list.innerHTML = '';
+  if(!filtered.length){
+    list.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">📭</div>Nenhuma tarefa com esses filtros.<br><br><button class="btn btn-primary btn-sm" onclick="openTaskModal()">+ Criar tarefa</button></div></div>`;
+    return;
+  }
+  filtered.forEach(t=>{
+    const prio = PRIO_MAP[+t.priority?.priority] || {label:'',color:'var(--text-muted)',icon:''};
+    const status = t.status||{};
+    const statusColor = status.color || '#94a3b8';
+    let dueClass = '', dueText = '';
+    if(t.due_date){
+      const due = +t.due_date;
+      if(due < Date.now() && !isClosedStatus(status.status)){ dueClass='urgent'; dueText='Venceu '+new Date(due).toLocaleDateString('pt-BR'); }
+      else if(due < Date.now()+86400000*3){ dueClass='soon'; dueText='Vence '+new Date(due).toLocaleDateString('pt-BR'); }
+      else dueText = new Date(due).toLocaleDateString('pt-BR');
+    }
+    const assignee = (t.assignees||[])[0];
+    const initial = assignee ? (assignee.initials || (assignee.username||'?').slice(0,2).toUpperCase()) : '';
+    const avatarColor = assignee?.color || '#7B68EE';
+    const row = document.createElement('div');
+    row.className='task-row';
+    row.style.setProperty('--c-priority', prio.color);
+    row.innerHTML = `
+      <span class="task-priority" title="${prio.label}">${prio.icon}</span>
+      <div></div>
+      <div class="task-name">
+        <a href="${escapeHtml(t.url||'#')}" target="_blank" rel="noopener">${escapeHtml(t.name||'(sem nome)')}</a>
+        <div class="task-meta">
+          ${t.list?.name?`<span class="task-list-name">${escapeHtml(t.list.name)}</span>`:''}
+          ${t.tags?.length?'<span>'+t.tags.map(tg=>`<span style="color:#${tg.tag_fg||'8b95a8'};background:#${tg.tag_bg||'1a2233'};padding:1px 6px;border-radius:3px;font-size:10px;margin-right:3px">${escapeHtml(tg.name||'')}</span>`).join('')+'</span>':''}
+        </div>
+      </div>
+      <span class="task-status" style="background:${statusColor}">${escapeHtml(status.status||'')}</span>
+      ${dueText?`<span class="task-due ${dueClass}">${dueText}</span>`:'<span></span>'}
+      ${assignee?`<div class="task-assignee"><div class="avatar" style="background:${avatarColor}">${escapeHtml(initial)}</div><div class="name">${escapeHtml(assignee.username||assignee.email||'?')}</div></div>`:'<span></span>'}
+      <span></span>
+    `;
+    list.appendChild(row);
+  });
+}
+
+// === CRIAR TAREFA ===
+async function openTaskModal(){
+  // Coletar listas únicas das tarefas
+  const lists = {};
+  state.tasks.forEach(t=>{ if(t.list?.id) lists[t.list.id] = t.list; });
+  const listOpts = Object.values(lists).map(l=>`<option value="${l.id}" ${l.id===state.selectedList?'selected':''}>${escapeHtml(l.name)}</option>`).join('');
+  // Status disponíveis (vai pegar a primeira lista pra mostrar opções padrão; ClickUp aceita "to do" por default em qualquer lista)
+  const statuses = [...new Set(state.tasks.map(t=>t.status?.status).filter(Boolean))];
+  const statusOpts = statuses.map(s=>`<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+  // Assignees
+  const assignees = {};
+  state.tasks.forEach(t=> (t.assignees||[]).forEach(a=>{ assignees[a.id] = a; }));
+  const assOpts = Object.values(assignees).map(a=>`<option value="${a.id}">${escapeHtml(a.username||a.email||'?')}</option>`).join('');
+
+  if(!Object.keys(lists).length){
+    toast('Você precisa ter pelo menos uma lista no ClickUp pra criar tarefas','error');
+    return;
+  }
+
+  openModal(`
+    <h3>+ Nova tarefa</h3>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px">A tarefa será criada direto no ClickUp e aparecerá aqui depois.</p>
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1"><label>Nome da tarefa *</label><input type="text" id="t-name" placeholder="Ex: Criar mockup landing page" autofocus></div>
+      <div class="form-group"><label>Lista *</label><select id="t-list">${listOpts}</select></div>
+      <div class="form-group"><label>Prioridade</label><select id="t-prio">
+        <option value="">— sem prioridade —</option>
+        <option value="1">🔥 Urgent</option>
+        <option value="2">⬆ High</option>
+        <option value="3" selected>• Normal</option>
+        <option value="4">⬇ Low</option>
+      </select></div>
+      <div class="form-group"><label>Status</label><select id="t-status"><option value="">(padrão da lista)</option>${statusOpts}</select></div>
+      <div class="form-group"><label>Prazo</label><input type="date" id="t-due"></div>
+      ${Object.keys(assignees).length?`<div class="form-group" style="grid-column:1/-1"><label>Responsáveis</label><select id="t-assignees" multiple style="height:90px">${assOpts}</select><small style="color:var(--text-muted);font-size:11px">Ctrl+click pra selecionar múltiplos</small></div>`:''}
+      <div class="form-group" style="grid-column:1/-1"><label>Descrição</label><textarea id="t-desc" placeholder="Detalhes da tarefa..."></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="t-save">Criar tarefa</button>
+    </div>
+  `);
+  document.getElementById('t-save').addEventListener('click', async ()=>{
+    const name = document.getElementById('t-name').value.trim();
+    if(!name){ toast('Nome é obrigatório','error'); return; }
+    const listId = document.getElementById('t-list').value;
+    const prio = document.getElementById('t-prio').value;
+    const status = document.getElementById('t-status').value;
+    const due = document.getElementById('t-due').value;
+    const desc = document.getElementById('t-desc').value;
+    const assigneeSel = document.getElementById('t-assignees');
+    const assignees = assigneeSel ? Array.from(assigneeSel.selectedOptions).map(o=>+o.value) : [];
+
+    const body = { name };
+    if(desc) body.description = desc;
+    if(prio) body.priority = +prio;
+    if(status) body.status = status;
+    if(due){ body.due_date = new Date(due+'T23:59:59').getTime(); body.due_date_time = false; }
+    if(assignees.length) body.assignees = assignees;
+
+    document.getElementById('t-save').textContent = 'Criando...';
+    document.getElementById('t-save').disabled = true;
+
+    try{
+      const res = await fetch(`${CU_API}/list/${listId}/task`,{
+        method:'POST',
+        headers:{'Authorization':state.token,'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      });
+      if(!res.ok){
+        const e = await res.json().catch(()=>({}));
+        throw new Error(e.err || `HTTP ${res.status}`);
+      }
+      const newTask = await res.json();
+      // Adiciona localmente pra aparecer imediato
+      newTask.list = state.tasks.find(t=>t.list?.id===listId)?.list || {id:listId, name:'(nova lista)'};
+      state.tasks.unshift(newTask);
+      save();
+      closeModal();
+      toast('✓ Tarefa criada no ClickUp');
+      renderTasks();
+      // Re-fetch em background pra garantir sincronia
+      setTimeout(loadTasks, 1500);
+    }catch(err){
+      toast('Erro: '+err.message, 'error');
+      document.getElementById('t-save').textContent = 'Criar tarefa';
+      document.getElementById('t-save').disabled = false;
+    }
+  });
+}
+window.openTaskModal = openTaskModal;
+
+// INIT
+load();
+updateConnStatus();
+render();
+</script>
+</body>
+</html>

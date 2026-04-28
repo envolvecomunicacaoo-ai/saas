@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="sync.js"></script>
+<title>Envolve · Kommo CRM</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --surface:#111827; --surface-2:#1a2233; --border:#252f44;
+    --text:#e8ecf3; --text-dim:#8b95a8; --text-muted:#5c6680;
+    --kommo:#06D6A0; --accent-2:#118AB2;
+    --success:#10b981; --warning:#f59e0b; --danger:#ef4444; --info:#06b6d4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;background-image:radial-gradient(circle at 0% 0%,rgba(6,214,160,.10),transparent 50%),radial-gradient(circle at 100% 100%,rgba(17,138,178,.06),transparent 50%);background-attachment:fixed}
+  .app{max-width:1500px;margin:0 auto;padding:24px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:14px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--kommo),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:white}
+  .brand h1{font-size:18px;font-weight:600;letter-spacing:-.01em}
+  .brand p{font-size:12px;color:var(--text-dim);margin-top:2px}
+  .header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .badge{font-size:11px;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim)}
+  .badge.ok{border-color:rgba(16,185,129,.4);color:var(--success)}
+
+  nav.tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--surface);padding:4px;border-radius:12px;border:1px solid var(--border);width:fit-content;flex-wrap:wrap}
+  .tab{padding:8px 18px;border-radius:8px;cursor:pointer;color:var(--text-dim);font-weight:500;font-size:13px;border:none;background:transparent}
+  .tab:hover{color:var(--text)}
+  .tab.active{background:var(--surface-2);color:var(--text)}
+  .panel{display:none}.panel.active{display:block}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+  .card h2{font-size:14px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .card h2 .sub{font-size:11px;color:var(--text-muted);font-weight:400;text-transform:uppercase;letter-spacing:.05em}
+
+  .btn{padding:10px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);cursor:pointer;font-weight:500;font-size:13px;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:#222e44;border-color:#3a4660}
+  .btn-primary{background:linear-gradient(135deg,var(--kommo),var(--accent-2));border-color:transparent;color:white}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-danger{background:transparent;color:var(--danger);border-color:rgba(239,68,68,.3)}
+  .btn-ghost{background:transparent}
+  .btn-sm{padding:6px 12px;font-size:12px}
+
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .form-group label{font-size:11px;color:var(--text-dim);font-weight:500;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px}
+  .form-group input,.form-group select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;font-family:inherit;width:100%}
+  .form-group input:focus,.form-group select:focus{outline:none;border-color:var(--kommo);box-shadow:0 0 0 3px rgba(6,214,160,.15)}
+
+  .setup-card{background:linear-gradient(135deg,rgba(6,214,160,.08),rgba(17,138,178,.05));border:1px solid rgba(6,214,160,.3);border-radius:14px;padding:24px;margin-bottom:14px}
+  .setup-card h3{font-size:16px;margin-bottom:6px}
+  .setup-card p{font-size:13px;color:var(--text-dim);margin-bottom:14px;line-height:1.6}
+  .setup-steps{font-size:12px;color:var(--text-dim);background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:14px}
+  .setup-steps ol{margin-left:20px;line-height:1.8}
+  .setup-steps a{color:var(--kommo)}
+  .setup-steps code{background:var(--bg);padding:2px 6px;border-radius:4px;font-size:11px;color:var(--kommo)}
+
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:14px}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;border-top:3px solid var(--c-accent,var(--kommo))}
+  .kpi-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:6px}
+  .kpi-value{font-size:22px;font-weight:700;letter-spacing:-.02em}
+  .kpi-trend{font-size:11px;margin-top:6px;color:var(--text-muted)}
+
+  /* Funil em colunas (kanban) */
+  .funnel{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
+  .funnel-col{min-width:240px;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;border-top:3px solid var(--c-stage,var(--kommo))}
+  .funnel-col-header{display:flex;justify-content:space-between;align-items:center;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim);font-weight:700}
+  .funnel-col-header .count{background:var(--surface-2);padding:2px 8px;border-radius:99px;color:var(--text);font-weight:700}
+  .funnel-col-value{font-size:11px;color:var(--text-muted);margin-bottom:6px;font-weight:500}
+  .lead-card{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:12px;line-height:1.4;cursor:pointer;transition:all .12s}
+  .lead-card:hover{border-color:var(--kommo);transform:translateY(-1px)}
+  .lead-card .name{font-weight:600;font-size:13px;color:var(--text);margin-bottom:4px}
+  .lead-card .price{color:var(--success);font-weight:700;font-size:13px}
+  .lead-card .meta{font-size:10px;color:var(--text-muted);margin-top:4px}
+
+  /* Calendar */
+  .cal-day{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px}
+  .cal-day-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+  .cal-day-header .day-label{font-size:13px;font-weight:600}
+  .cal-day-header .day-count{font-size:11px;color:var(--text-dim)}
+  .cal-day.today{border-color:var(--kommo);box-shadow:0 0 0 1px var(--kommo)}
+  .cal-day.overdue{border-left:3px solid var(--danger)}
+  .cal-event{display:flex;gap:10px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;font-size:12px;align-items:flex-start}
+  .cal-event .icon{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:var(--c-task,var(--info));color:white;font-size:11px;flex-shrink:0;font-weight:700}
+  .cal-event.task .icon{background:var(--info)}
+  .cal-event.event .icon{background:var(--warning)}
+  .cal-event.meeting .icon{background:var(--kommo)}
+  .cal-event .text{flex:1}
+  .cal-event .text .title{font-weight:500;color:var(--text)}
+  .cal-event .text .meta{font-size:10px;color:var(--text-muted);margin-top:2px}
+  .cal-event.completed{opacity:.55}
+  .cal-event.completed .text .title{text-decoration:line-through}
+
+  /* Chat / Inbox */
+  .chat-layout{display:grid;grid-template-columns:320px 1fr;gap:14px}
+  @media(max-width:768px){ .chat-layout{grid-template-columns:1fr} }
+  .chat-list{background:var(--surface);border:1px solid var(--border);border-radius:12px;max-height:600px;overflow-y:auto}
+  .chat-item{padding:12px 14px;border-bottom:1px solid var(--border);cursor:pointer}
+  .chat-item:hover{background:var(--surface-2)}
+  .chat-item.selected{background:rgba(6,214,160,.08);border-left:3px solid var(--kommo)}
+  .chat-item .name{font-size:13px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+  .chat-item .preview{font-size:11px;color:var(--text-dim);margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chat-item .time{font-size:10px;color:var(--text-muted);font-weight:400}
+  .chat-detail{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;max-height:600px;overflow-y:auto}
+  .chat-msg{padding:10px 14px;border-radius:10px;margin-bottom:8px;max-width:75%;font-size:13px;line-height:1.4}
+  .chat-msg.in{background:var(--surface-2);margin-right:auto}
+  .chat-msg.out{background:linear-gradient(135deg,var(--kommo),var(--accent-2));color:white;margin-left:auto}
+  .chat-msg .time{display:block;font-size:10px;opacity:.7;margin-top:4px}
+
+  .filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .filters select,.filters input{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;font-family:inherit}
+
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);padding:12px 18px;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.3);font-size:13px;font-weight:500;transform:translateY(120%);transition:.25s ease;z-index:300}
+  .toast.show{transform:translateY(0)}
+  .toast.success{border-color:var(--success)}
+  .toast.error{border-color:var(--danger)}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
+  .modal-bg.show{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:560px;width:90%}
+  .modal h3{font-size:16px;margin-bottom:14px;font-weight:600}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+
+  .empty-state{text-align:center;padding:40px;color:var(--text-dim)}
+  .empty-state .icon{font-size:36px;margin-bottom:10px}
+  .loading{display:inline-block;width:14px;height:14px;border:2px solid var(--text-dim);border-top-color:var(--kommo);border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .alert{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.4);border-radius:8px;padding:12px;font-size:12px;color:var(--warning);margin-bottom:14px}
+  .alert.error{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.4);color:var(--danger)}
+
+  @media(max-width:768px){.app{padding:14px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">K</div>
+      <div>
+        <h1>Envolve · Kommo CRM</h1>
+        <p>Funil de vendas, calendário e chat unificados</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="./" style="font-size:12px;padding:6px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);text-decoration:none;display:inline-flex;align-items:center;gap:6px">← Envolve</a>
+      <span class="badge" id="connStatus">Não conectado</span>
+      <a id="kommoOpenBtn" href="#" target="_blank" style="display:none;font-size:12px;padding:6px 12px;border-radius:8px;background:linear-gradient(135deg,var(--kommo),var(--accent-2));color:white;text-decoration:none;font-weight:500" title="Abrir Kommo em nova aba">🔗 Abrir Kommo</a>
+      <button class="btn btn-sm" id="refreshBtn" style="display:none">↻ Atualizar</button>
+      <button class="btn btn-sm" id="openSetup">⚙ Token</button>
+    </div>
+  </header>
+
+  <div id="content"></div>
+</div>
+
+<div class="modal-bg" id="modal"><div class="modal" id="modalContent"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'envolve.kommo.v1';
+
+let state = {
+  subdomain:'', token:'',
+  pipelines:[], leads:[], tasks:[], events:[], chats:[], chatMessages:{}, users:[],
+  selectedPipeline:'', selectedChat:'', activeTab:'funnel',
+  lastSync:''
+};
+
+function load(){ try{ Object.assign(state, JSON.parse(localStorage.getItem(STORAGE_KEY))||{}); }catch(e){} }
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+const fmtNum = v => (v||0).toLocaleString('pt-BR');
+const fmtBRL = v => 'R$ '+(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg,type='success'){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>t.classList.remove('show'),3000); }
+function openModal(html){ document.getElementById('modalContent').innerHTML=html; document.getElementById('modal').classList.add('show'); }
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
+
+function isConnected(){ return state.token && state.subdomain && state.token.length>20; }
+function updateConnStatus(){
+  const b = document.getElementById('connStatus');
+  const openBtn = document.getElementById('kommoOpenBtn');
+  if(isConnected()){
+    b.className='badge ok';
+    b.textContent = 'Conectado: '+state.subdomain+'.kommo.com';
+    document.getElementById('refreshBtn').style.display = 'inline-flex';
+    if(openBtn){
+      openBtn.href = `https://${state.subdomain}.kommo.com/dashboard?sel=all&period=week`;
+      openBtn.style.display = 'inline-flex';
+    }
+  } else {
+    b.className='badge';
+    b.textContent = 'Não conectado';
+    document.getElementById('refreshBtn').style.display = 'none';
+    if(openBtn) openBtn.style.display = 'none';
+  }
+}
+
+// Detecta se está rodando no Netlify (pra usar proxy automaticamente)
+const useProxy = !location.protocol.startsWith('file') && !location.hostname.match(/^(localhost|127\.|192\.168|10\.)/);
+
+async function api(path, opts={}){
+  let url, headers;
+  if(useProxy){
+    url = `/.netlify/functions/kommo-proxy?path=${encodeURIComponent(path)}`;
+    headers = {
+      'X-Kommo-Token': state.token,
+      'X-Kommo-Subdomain': state.subdomain,
+      'Content-Type':'application/json',
+      ...(opts.headers||{})
+    };
+  } else {
+    url = `https://${state.subdomain}.kommo.com/api/v4${path}`;
+    headers = {
+      'Authorization':'Bearer '+state.token,
+      'Content-Type':'application/json',
+      ...(opts.headers||{})
+    };
+  }
+  const res = await fetch(url, { ...opts, headers });
+  if(!res.ok){
+    const text = await res.text();
+    throw new Error(`HTTP ${res.status}: ${text.slice(0,200)}`);
+  }
+  if(res.status===204) return null;
+  return res.json();
+}
+
+// === SETUP ===
+document.getElementById('openSetup').addEventListener('click',()=>{
+  openModal(`
+    <h3>⚙ Configurar Kommo</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Forneça seu subdomínio e token de longa duração.</p>
+    <div class="setup-steps" style="margin-bottom:14px">
+      <strong>Como gerar o token:</strong>
+      <ol>
+        <li>Entre no seu Kommo (ex: <code>minhaempresa.kommo.com</code>)</li>
+        <li>Menu lateral → <strong>Configurações</strong> → <strong>Integrações</strong></li>
+        <li>Crie uma "Integração privada" → adicione qualquer URL de redirect</li>
+        <li>Aprove e copie o <strong>access_token</strong> de longa duração (ou use o token gerado pra teste)</li>
+        <li>Cole abaixo e salve</li>
+      </ol>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Subdomínio</label>
+        <input type="text" id="cfg-sub" value="${escapeHtml(state.subdomain||'')}" placeholder="minhaempresa">
+        <small style="color:var(--text-muted);font-size:11px;display:block;margin-top:4px">apenas o nome, sem .kommo.com</small>
+      </div>
+      <div class="form-group">
+        <label>Access Token</label>
+        <input type="password" id="cfg-token" value="${escapeHtml(state.token||'')}" placeholder="eyJ..." autocomplete="off">
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:14px;line-height:1.5">
+      <strong>Atenção CORS:</strong> Kommo às vezes bloqueia browser direto. Se aparecer erro, pode ser necessário rodar localmente ou configurar Webhook/proxy. Token e subdomínio ficam só no seu navegador.
+    </p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-danger" id="cfg-clear">Limpar</button>
+      <button class="btn btn-primary" id="cfg-save">Salvar</button>
+    </div>
+  `);
+  document.getElementById('cfg-save').addEventListener('click',()=>{
+    const sub = document.getElementById('cfg-sub').value.trim().replace(/\.kommo\.com.*/,'').replace(/^https?:\/\//,'');
+    const t = document.getElementById('cfg-token').value.trim();
+    if(!sub){ toast('Subdomínio obrigatório','error'); return; }
+    if(!t || t.length<20){ toast('Token muito curto','error'); return; }
+    state.subdomain = sub; state.token = t;
+    state.pipelines=[]; state.leads=[]; state.tasks=[]; state.events=[]; state.chats=[]; state.chatMessages={};
+    save(); closeModal(); updateConnStatus(); render();
+  });
+  document.getElementById('cfg-clear').addEventListener('click',()=>{
+    state = {subdomain:'',token:'',pipelines:[],leads:[],tasks:[],events:[],chats:[],chatMessages:{},users:[],selectedPipeline:'',selectedChat:'',activeTab:'funnel',lastSync:''};
+    save(); closeModal(); updateConnStatus(); render();
+  });
+});
+
+document.getElementById('refreshBtn').addEventListener('click',()=>{ loadAll(); });
+
+// === MAIN RENDER ===
+function render(){
+  const c = document.getElementById('content');
+  if(!isConnected()){
+    c.innerHTML = `
+      <div class="setup-card">
+        <h3>Conecte seu Kommo CRM</h3>
+        <p>Pra ver funil, calendário e chats no Envolve, preciso de access token + subdomínio. Tudo fica salvo apenas no seu navegador.</p>
+        <button class="btn btn-primary" onclick="document.getElementById('openSetup').click()">⚙ Configurar agora</button>
+      </div>
+    `;
+    return;
+  }
+  if(!state.pipelines.length){
+    c.innerHTML = `<div class="card"><div class="empty-state"><span class="loading"></span> Carregando dados do Kommo...</div></div>`;
+    loadAll();
+    return;
+  }
+  renderApp();
+}
+
+async function loadAll(){
+  document.getElementById('content').innerHTML = `<div class="card"><div class="empty-state"><span class="loading"></span> Sincronizando Kommo...</div></div>`;
+  try{
+    // 1) Pipelines (com seus statuses)
+    const pp = await api('/leads/pipelines');
+    state.pipelines = (pp._embedded?.pipelines)||[];
+    if(state.pipelines.length && !state.selectedPipeline) state.selectedPipeline = state.pipelines.find(p=>p.is_main)?.id || state.pipelines[0].id;
+
+    // 2) Users (pra mapear nomes)
+    try{ const us = await api('/users?limit=250'); state.users = (us._embedded?.users)||[]; }catch(e){ state.users=[]; }
+
+    // 3) Leads
+    try{ const ld = await api('/leads?limit=250'); state.leads = (ld._embedded?.leads)||[]; }catch(e){ state.leads=[]; }
+
+    // 4) Tasks
+    try{
+      const tk = await api('/tasks?limit=250&filter[is_completed]=0');
+      state.tasks = (tk._embedded?.tasks)||[];
+    }catch(e){ state.tasks=[]; }
+
+    // 5) Events (limita pros últimos)
+    try{ const ev = await api('/events?limit=100'); state.events = (ev._embedded?.events)||[]; }catch(e){ state.events=[]; }
+
+    // 6) Chats — Kommo usa amojo.kommo.com (Chats API). Precisa do origin/scope_id da conta
+    // Pra evitar erro, tentamos só se tiver. Se falhar, deixa vazio.
+    try{
+      // Ver se há a permissão necessária — chamar /account
+      const acc = await api('/account?with=amojo_id');
+      if(acc?.amojo_id){
+        // Listar conversas — endpoint amojo
+        const r = await fetch(`https://amojo.kommo.com/v2/origin/custom/${acc.amojo_id}/chats`,{headers:{'Authorization':'Bearer '+state.token}});
+        if(r.ok){
+          const d = await r.json();
+          state.chats = d.chats || [];
+        }
+      }
+    }catch(e){ console.warn('Chats indisponível:', e.message); state.chats=[]; }
+
+    state.lastSync = new Date().toISOString();
+    save();
+    toast('Sincronizado');
+    renderApp();
+  }catch(err){
+    const proxyInfo = useProxy ? `<br><br><strong>Modo:</strong> via Netlify Function (proxy CORS).<br>Verifique se a função <code>kommo-proxy</code> foi deployada (<code>/.netlify/functions/kommo-proxy</code>).` : `<br><br><strong>Modo:</strong> chamada direta (file:// ou localhost). Em produção via Netlify, o proxy é ativado automaticamente.`;
+    document.getElementById('content').innerHTML = `<div class="card"><div class="alert error"><strong>Erro ao conectar:</strong> ${escapeHtml(err.message)}<br><br><strong>Possíveis causas:</strong><br>• Token expirado ou inválido<br>• Subdomínio errado<br>• Permissões insuficientes na integração privada${proxyInfo}</div></div>`;
+  }
+}
+
+function userName(id){ return state.users.find(u=>u.id===id)?.name || '—'; }
+
+function renderApp(){
+  const c = document.getElementById('content');
+  const totalLeads = state.leads.length;
+  const openLeads = state.leads.filter(l=>!l.closed_at).length;
+  const totalValue = state.leads.filter(l=>!l.closed_at).reduce((s,l)=>s+(+l.price||0),0);
+  const wonValue = state.leads.filter(l=>l.closed_at && l.status_id===142).reduce((s,l)=>s+(+l.price||0),0);
+  const overdueTasks = state.tasks.filter(t=> t.complete_till*1000 < Date.now() && !t.is_completed).length;
+
+  const sub = state.subdomain;
+  const kommoLinks = [
+    {label:'📊 Dashboard',     url:`https://${sub}.kommo.com/dashboard?sel=all&period=week`,    color:'var(--kommo)'},
+    {label:'🎯 Leads',          url:`https://${sub}.kommo.com/leads/`,                          color:'#7c5cff'},
+    {label:'📋 Pipelines',      url:`https://${sub}.kommo.com/leads/pipeline/`,                 color:'#06b6d4'},
+    {label:'✓ Tarefas',         url:`https://${sub}.kommo.com/todo/`,                           color:'#f59e0b'},
+    {label:'💬 Chats',          url:`https://${sub}.kommo.com/chats/`,                          color:'#10b981'},
+    {label:'👥 Contatos',       url:`https://${sub}.kommo.com/contacts/`,                       color:'#ec4899'},
+    {label:'🏢 Empresas',       url:`https://${sub}.kommo.com/contacts/companies/`,             color:'#a855f7'},
+    {label:'⚙ Configurações',   url:`https://${sub}.kommo.com/settings/`,                       color:'#94a3b8'},
+  ];
+
+  c.innerHTML = `
+    <div class="card">
+      <h2>Atalhos pro Kommo nativo <span class="sub">abre em nova aba</span></h2>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">
+        ${kommoLinks.map(l=>`
+          <a href="${l.url}" target="_blank" rel="noopener" style="padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;text-align:center;transition:all .12s;border-left:3px solid ${l.color}" onmouseover="this.style.borderColor='${l.color}';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.borderLeftColor='${l.color}';this.style.transform=''">${l.label}</a>
+        `).join('')}
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label">Pipeline aberto</div><div class="kpi-value">${fmtBRL(totalValue)}</div><div class="kpi-trend">${fmtNum(openLeads)} oportunidades</div></div>
+      <div class="kpi" style="--c-accent:var(--success)"><div class="kpi-label">Vendas fechadas</div><div class="kpi-value">${fmtBRL(wonValue)}</div><div class="kpi-trend">de todos os tempos</div></div>
+      <div class="kpi" style="--c-accent:var(--warning)"><div class="kpi-label">Tarefas abertas</div><div class="kpi-value">${fmtNum(state.tasks.length)}</div><div class="kpi-trend">${overdueTasks} vencidas</div></div>
+      <div class="kpi" style="--c-accent:var(--info)"><div class="kpi-label">Conversas</div><div class="kpi-value">${fmtNum(state.chats.length)}</div><div class="kpi-trend">${state.chats.length===0?'(Chats API requer config)':''}</div></div>
+      <div class="kpi" style="--c-accent:#a855f7"><div class="kpi-label">Pipelines</div><div class="kpi-value">${fmtNum(state.pipelines.length)}</div><div class="kpi-trend">funis no Kommo</div></div>
+    </div>
+
+    <nav class="tabs">
+      <button class="tab ${state.activeTab==='funnel'?'active':''}" data-tab="funnel">Funil</button>
+      <button class="tab ${state.activeTab==='calendar'?'active':''}" data-tab="calendar">Calendário</button>
+      <button class="tab ${state.activeTab==='inbox'?'active':''}" data-tab="inbox">Inbox de Chat</button>
+    </nav>
+
+    <section class="panel ${state.activeTab==='funnel'?'active':''}" id="panel-funnel"></section>
+    <section class="panel ${state.activeTab==='calendar'?'active':''}" id="panel-calendar"></section>
+    <section class="panel ${state.activeTab==='inbox'?'active':''}" id="panel-inbox"></section>
+  `;
+
+  c.querySelectorAll('.tab').forEach(b=> b.addEventListener('click',()=>{
+    state.activeTab = b.dataset.tab; save();
+    c.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    c.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('panel-'+state.activeTab).classList.add('active');
+    renderTab();
+  }));
+  renderTab();
+}
+
+function renderTab(){
+  if(state.activeTab==='funnel') renderFunnel();
+  else if(state.activeTab==='calendar') renderCalendar();
+  else if(state.activeTab==='inbox') renderInbox();
+}
+
+function renderFunnel(){
+  const wrap = document.getElementById('panel-funnel');
+  const pipelineOpts = state.pipelines.map(p=>`<option value="${p.id}" ${state.selectedPipeline==p.id?'selected':''}>${escapeHtml(p.name)}${p.is_main?' (principal)':''}</option>`).join('');
+  wrap.innerHTML = `
+    <div class="card">
+      <div class="filters" style="margin-bottom:0">
+        <label style="font-size:12px;color:var(--text-dim)">Pipeline:</label>
+        <select id="pipelineSel">${pipelineOpts}</select>
+        <span style="font-size:12px;color:var(--text-dim);margin-left:auto" id="funnelStats"></span>
+      </div>
+    </div>
+    <div id="funnelKanban"></div>
+  `;
+  document.getElementById('pipelineSel').addEventListener('change',e=>{
+    state.selectedPipeline = +e.target.value; save(); renderFunnelKanban();
+  });
+  renderFunnelKanban();
+}
+
+function renderFunnelKanban(){
+  const pipeline = state.pipelines.find(p=>p.id==state.selectedPipeline);
+  if(!pipeline){ document.getElementById('funnelKanban').innerHTML = '<div class="empty-state">Pipeline não encontrado</div>'; return; }
+  const stages = (pipeline._embedded?.statuses||[]).filter(s=>s.id!==142 && s.id!==143).sort((a,b)=>a.sort-b.sort);
+  const stageColors = {142:'#10b981',143:'#94a3b8'}; // ganho / perdido — não exibimos colunas, contamos no total
+  const leadsInPipeline = state.leads.filter(l=>l.pipeline_id==state.selectedPipeline);
+  const totalValue = leadsInPipeline.filter(l=>!l.closed_at).reduce((s,l)=>s+(+l.price||0),0);
+  document.getElementById('funnelStats').textContent = `${leadsInPipeline.length} leads · ${fmtBRL(totalValue)} em aberto`;
+
+  const colors = ['#06D6A0','#118AB2','#7c5cff','#f59e0b','#ec4899','#06b6d4','#a855f7','#84cc16'];
+  document.getElementById('funnelKanban').innerHTML = `
+    <div class="funnel">
+      ${stages.map((st,idx)=>{
+        const stageLeads = leadsInPipeline.filter(l=>l.status_id===st.id);
+        const stageValue = stageLeads.reduce((s,l)=>s+(+l.price||0),0);
+        const color = '#'+(st.color||'').replace(/^#/,'') || colors[idx%colors.length];
+        return `
+          <div class="funnel-col" style="--c-stage:${color}">
+            <div class="funnel-col-header"><span style="color:${color}">${escapeHtml(st.name)}</span><span class="count">${stageLeads.length}</span></div>
+            <div class="funnel-col-value">${fmtBRL(stageValue)}</div>
+            ${stageLeads.length===0?'<div style="font-size:11px;color:var(--text-muted);text-align:center;padding:14px">vazio</div>':stageLeads.slice(0,30).map(l=>`
+              <div class="lead-card" data-lead="${l.id}">
+                <div class="name">${escapeHtml(l.name||'(sem nome)')}</div>
+                <div class="price">${l.price?fmtBRL(l.price):'—'}</div>
+                <div class="meta">${userName(l.responsible_user_id)} · ${l.created_at?new Date(l.created_at*1000).toLocaleDateString('pt-BR'):''}</div>
+              </div>
+            `).join('')}
+            ${stageLeads.length>30?`<div style="font-size:10px;color:var(--text-muted);text-align:center">+${stageLeads.length-30} mais...</div>`:''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+  document.querySelectorAll('[data-lead]').forEach(c=> c.addEventListener('click',()=>{
+    const lead = state.leads.find(l=>l.id==c.dataset.lead);
+    if(lead) showLeadDetails(lead);
+  }));
+}
+
+function showLeadDetails(lead){
+  const pipeline = state.pipelines.find(p=>p.id==lead.pipeline_id);
+  const stage = pipeline?._embedded?.statuses?.find(s=>s.id===lead.status_id);
+  openModal(`
+    <h3>${escapeHtml(lead.name)}</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+      <div><div style="font-size:11px;color:var(--text-dim)">Valor</div><div style="font-size:18px;font-weight:700;color:var(--success)">${lead.price?fmtBRL(lead.price):'—'}</div></div>
+      <div><div style="font-size:11px;color:var(--text-dim)">Estágio</div><div style="font-size:14px;font-weight:600">${escapeHtml(stage?.name||'—')}</div></div>
+      <div><div style="font-size:11px;color:var(--text-dim)">Responsável</div><div style="font-size:13px">${escapeHtml(userName(lead.responsible_user_id))}</div></div>
+      <div><div style="font-size:11px;color:var(--text-dim)">Criado em</div><div style="font-size:13px">${lead.created_at?new Date(lead.created_at*1000).toLocaleDateString('pt-BR'):'—'}</div></div>
+      <div><div style="font-size:11px;color:var(--text-dim)">Pipeline</div><div style="font-size:13px">${escapeHtml(pipeline?.name||'—')}</div></div>
+      <div><div style="font-size:11px;color:var(--text-dim)">Atualizado</div><div style="font-size:13px">${lead.updated_at?new Date(lead.updated_at*1000).toLocaleDateString('pt-BR'):'—'}</div></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Fechar</button>
+      <a class="btn btn-primary" href="https://${state.subdomain}.kommo.com/leads/detail/${lead.id}" target="_blank">Abrir no Kommo →</a>
+    </div>
+  `);
+}
+
+function renderCalendar(){
+  const wrap = document.getElementById('panel-calendar');
+  // Combina tasks + events em uma timeline
+  const items = [];
+  state.tasks.forEach(t=> items.push({type:'task',date:t.complete_till*1000,title:t.text,user:t.responsible_user_id,completed:t.is_completed,id:t.id,entity:t.entity_type}));
+  state.events.forEach(e=> items.push({type:'event',date:e.created_at*1000,title:e.value_after?.[0]?.note?.text||e.type||'evento',user:e.created_by,id:e.id}));
+
+  // Agrupa por dia
+  const byDay = {};
+  items.forEach(it=>{
+    const d = new Date(it.date);
+    const key = d.toISOString().slice(0,10);
+    if(!byDay[key]) byDay[key]=[];
+    byDay[key].push(it);
+  });
+  const today = new Date().toISOString().slice(0,10);
+
+  // Renderiza dias futuros e do passado próximo
+  const dates = Object.keys(byDay).sort();
+  if(!dates.length){
+    wrap.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">📅</div>Nenhuma tarefa ou evento</div></div>`;
+    return;
+  }
+
+  wrap.innerHTML = `
+    <div class="card">
+      <h2>Agenda <span class="sub">${state.tasks.length} tarefas · ${state.events.length} eventos</span></h2>
+      ${dates.map(d=>{
+        const items = byDay[d].sort((a,b)=>a.date-b.date);
+        const dt = new Date(d+'T00:00:00');
+        const isToday = d===today;
+        const isOverdue = d<today;
+        const dayLabel = dt.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+        return `
+          <div class="cal-day ${isToday?'today':''} ${isOverdue?'overdue':''}">
+            <div class="cal-day-header">
+              <span class="day-label">${escapeHtml(dayLabel)}${isToday?' · HOJE':''}</span>
+              <span class="day-count">${items.length} ${items.length===1?'item':'itens'}</span>
+            </div>
+            ${items.map(it=>`
+              <div class="cal-event ${it.type} ${it.completed?'completed':''}">
+                <div class="icon">${it.type==='task'?'✓':'⚡'}</div>
+                <div class="text">
+                  <div class="title">${escapeHtml(it.title||'(sem título)')}</div>
+                  <div class="meta">${new Date(it.date).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} · ${escapeHtml(userName(it.user))}${it.entity?' · '+escapeHtml(it.entity):''}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderInbox(){
+  const wrap = document.getElementById('panel-inbox');
+  if(!state.chats.length){
+    wrap.innerHTML = `
+      <div class="card">
+        <div class="alert">
+          <strong>Inbox de chats não disponível.</strong><br><br>
+          A API de chats do Kommo (Chats API) requer:<br>
+          1. Conta com integração de Mensageiros configurada<br>
+          2. Token com escopo <code>chats</code><br>
+          3. Endpoint <code>amojo.kommo.com</code> liberado pra browser (CORS)<br><br>
+          Como alternativa, o Kommo permite ver as conversas direto na URL: <a href="https://${state.subdomain}.kommo.com/chats" target="_blank" style="color:var(--kommo)">${state.subdomain}.kommo.com/chats</a>
+        </div>
+      </div>
+    `;
+    return;
+  }
+  wrap.innerHTML = `
+    <div class="chat-layout">
+      <div class="chat-list" id="chatList"></div>
+      <div class="chat-detail" id="chatDetail"><div class="empty-state">Selecione uma conversa</div></div>
+    </div>
+  `;
+  document.getElementById('chatList').innerHTML = state.chats.map(c=>`
+    <div class="chat-item ${state.selectedChat===c.id?'selected':''}" data-chat="${c.id}">
+      <div class="name"><span>${escapeHtml(c.name||'Conversa')}</span><span class="time">${c.updated_at?new Date(c.updated_at*1000).toLocaleDateString('pt-BR'):''}</span></div>
+      <div class="preview">${escapeHtml((c.last_message?.text||'').slice(0,80))}</div>
+    </div>
+  `).join('');
+  document.querySelectorAll('[data-chat]').forEach(it=> it.addEventListener('click',()=>{
+    state.selectedChat = it.dataset.chat;
+    save();
+    renderInbox();
+  }));
+  if(state.selectedChat){
+    const chat = state.chats.find(c=>c.id===state.selectedChat);
+    const msgs = state.chatMessages[state.selectedChat] || [];
+    document.getElementById('chatDetail').innerHTML = msgs.length?msgs.map(m=>`
+      <div class="chat-msg ${m.from==='client'?'in':'out'}">
+        ${escapeHtml(m.text)}
+        <span class="time">${new Date(m.timestamp*1000).toLocaleString('pt-BR')}</span>
+      </div>
+    `).join(''):`<div class="empty-state">Mensagens não carregadas — abra a conversa em <a href="https://${state.subdomain}.kommo.com/chats/${state.selectedChat}" target="_blank" style="color:var(--kommo)">Kommo</a></div>`;
+  }
+}
+
+// INIT
+load();
+updateConnStatus();
+render();
+</script>
+</body>
+</html>

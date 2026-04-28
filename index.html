@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="sync.js"></script>
+<title>Envolve · Sistema Operacional</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --surface:#111827; --surface-2:#1a2233; --border:#252f44;
+    --text:#e8ecf3; --text-dim:#8b95a8; --text-muted:#5c6680;
+    --accent:#7c5cff; --accent-2:#5b8cff;
+    --success:#10b981; --warning:#f59e0b; --danger:#ef4444; --info:#06b6d4;
+    --marketing:#7c5cff; --social:#E4405F; --comercial:#f59e0b; --financeiro:#10b981; --insights:#a855f7; --trafego:#1877F2; --clickup:#7B68EE; --noticias:#06b6d4; --kommo:#06D6A0; --google:#4285F4; --notion:#a855f7; --vagas:#10b981;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",sans-serif;
+    background:var(--bg); color:var(--text); font-size:14px; line-height:1.5;
+    background-image:
+      radial-gradient(circle at 10% 0%,rgba(124,92,255,.10),transparent 50%),
+      radial-gradient(circle at 90% 100%,rgba(228,64,95,.07),transparent 50%),
+      radial-gradient(circle at 50% 50%,rgba(16,185,129,.04),transparent 60%);
+    background-attachment:fixed;
+    min-height:100vh;
+  }
+  .app{max-width:1300px;margin:0 auto;padding:32px 24px}
+
+  /* ===== Header ===== */
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}
+  .brand{display:flex;align-items:center;gap:16px}
+  .logo{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--marketing),var(--social),var(--financeiro));display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;color:white;letter-spacing:-.04em;box-shadow:0 10px 30px rgba(124,92,255,.3)}
+  .brand h1{font-size:28px;font-weight:700;letter-spacing:-.03em;line-height:1}
+  .brand p{font-size:13px;color:var(--text-dim);margin-top:6px}
+  .header-info{text-align:right;color:var(--text-dim);font-size:13px}
+  .header-info .date{font-weight:600;color:var(--text);font-size:14px;text-transform:capitalize}
+  .header-info .greeting{font-size:12px;margin-top:2px}
+
+  /* ===== Hero KPIs ===== */
+  .hero-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px}
+  .hero-kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;position:relative;overflow:hidden;transition:all .2s}
+  .hero-kpi:hover{transform:translateY(-2px);border-color:#3a4660}
+  .hero-kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--c-accent,var(--accent))}
+  .hero-kpi .label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;font-weight:600}
+  .hero-kpi .value{font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  .hero-kpi .value.pos{color:var(--success)}
+  .hero-kpi .value.neg{color:var(--danger)}
+  .hero-kpi .sub{font-size:11px;color:var(--text-muted);margin-top:6px}
+
+  /* ===== Section title ===== */
+  .section-title{font-size:13px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em;margin:32px 0 14px;display:flex;align-items:center;gap:10px}
+  .section-title::after{content:"";flex:1;height:1px;background:var(--border)}
+
+  /* ===== Module Cards ===== */
+  .modules{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+  .module{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:24px;cursor:pointer;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:14px;transition:all .25s;position:relative;overflow:hidden;min-height:220px}
+  .module:hover{transform:translateY(-3px);border-color:var(--c-module,var(--accent));box-shadow:0 14px 40px rgba(0,0,0,.4),0 0 0 1px var(--c-module,var(--accent))}
+  .module::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:var(--c-module,var(--accent))}
+  .module-icon{width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,var(--c-module),var(--c-module-2));display:flex;align-items:center;justify-content:center;font-size:22px;color:white;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+  .module h3{font-size:18px;font-weight:600;letter-spacing:-.01em}
+  .module .desc{font-size:13px;color:var(--text-dim);line-height:1.55;flex:1}
+  .module .stats{display:flex;gap:14px;margin-top:auto;padding-top:14px;border-top:1px solid var(--border)}
+  .module .stat{flex:1}
+  .module .stat .l{font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+  .module .stat .v{font-size:14px;font-weight:700;margin-top:2px;color:var(--text)}
+  .module .stat .v.pos{color:var(--success)}
+  .module .stat .v.neg{color:var(--danger)}
+  .module .arrow{position:absolute;top:24px;right:24px;color:var(--text-muted);font-size:16px;transition:all .2s}
+  .module:hover .arrow{color:var(--c-module);transform:translateX(4px)}
+  .module.coming{cursor:not-allowed;opacity:.7}
+  .module.coming:hover{transform:none;box-shadow:none}
+  .module .badge-soon{position:absolute;top:24px;right:24px;font-size:10px;padding:3px 8px;background:var(--surface-2);border:1px solid var(--border);border-radius:4px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+
+  /* ===== Quick Actions ===== */
+  .quick-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+  .quick{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;text-decoration:none;color:inherit;display:flex;align-items:center;gap:10px;transition:all .15s;font-size:13px}
+  .quick:hover{background:var(--surface-2);border-color:#3a4660;transform:translateX(2px)}
+  .quick .q-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;color:white;flex-shrink:0;background:var(--c-quick,var(--accent))}
+
+  /* ===== Quick view blocks ===== */
+  .qv-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:24px}
+  .qv{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;border-top:3px solid var(--c-accent,var(--accent));min-height:240px}
+  .qv-header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .qv-header h3{font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .qv-header h3 .icon{font-size:18px}
+  .qv-header .action{font-size:11px;color:var(--text-dim);background:transparent;border:none;cursor:pointer;font-family:inherit;padding:2px 6px;border-radius:4px}
+  .qv-header .action:hover{color:var(--text);background:var(--surface-2)}
+  .qv-body{flex:1;display:flex;flex-direction:column;gap:8px;overflow-y:auto;max-height:280px}
+  .qv-empty{text-align:center;padding:20px 14px;color:var(--text-dim);font-size:12px;line-height:1.6;flex:1;display:flex;flex-direction:column;justify-content:center}
+  .qv-empty .icon{font-size:24px;margin-bottom:8px}
+  .qv-item{padding:8px 10px;background:var(--surface-2);border-radius:6px;font-size:12px;border-left:2px solid var(--c-item,var(--text-muted));text-decoration:none;color:inherit;display:block;transition:all .12s;line-height:1.4}
+  .qv-item:hover{background:#222e44;border-left-color:var(--c-accent,var(--accent))}
+  .qv-item .qv-title{font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qv-item .qv-meta{font-size:10px;color:var(--text-dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qv-item .qv-meta strong{color:var(--text)}
+  .qv-loading{text-align:center;padding:18px;color:var(--text-dim);font-size:12px}
+  .qv-loading::before{content:"";display:inline-block;width:12px;height:12px;border:2px solid var(--text-dim);border-top-color:var(--c-accent,var(--accent));border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .qv-footer{padding-top:8px;border-top:1px solid var(--border);font-size:10px;color:var(--text-muted);text-align:center}
+  .qv-footer a{color:var(--c-accent,var(--accent));text-decoration:none}
+  .qv-config-btn{margin-top:auto;background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);padding:6px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-family:inherit}
+  .qv-config-btn:hover{color:var(--text)}
+
+  /* Notion insight specific */
+  .qv-insight{background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,92,255,.04));border:1px solid rgba(168,85,247,.25);border-radius:8px;padding:10px;font-size:12px;line-height:1.55;white-space:pre-wrap;word-wrap:break-word;max-height:200px;overflow-y:auto}
+  .qv-insight strong{color:var(--text)}
+
+  /* Modal config */
+  .qv-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
+  .qv-modal-bg.show{display:flex}
+  .qv-modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:560px;width:90%;max-height:90vh;overflow-y:auto}
+  .qv-modal h3{font-size:16px;margin-bottom:14px;font-weight:600}
+  .qv-modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+  .qv-modal input,.qv-modal select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;font-family:inherit;width:100%}
+  .qv-modal label{font-size:11px;color:var(--text-dim);font-weight:500;text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:6px}
+
+  /* ===== Footer / status ===== */
+  .status-bar{margin-top:32px;display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:12px;color:var(--text-dim);flex-wrap:wrap;gap:10px}
+  .status-bar .live{display:flex;align-items:center;gap:6px}
+  .status-bar .live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  @media(max-width:768px){
+    .app{padding:20px 14px}
+    header{flex-direction:column;align-items:flex-start;gap:14px}
+    .header-info{text-align:left}
+    .brand h1{font-size:22px}
+    .module{min-height:auto}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">EV</div>
+      <div>
+        <h1>Envolve</h1>
+        <p>Sistema operacional · captação, vendas, social selling e finanças</p>
+      </div>
+    </div>
+    <div class="header-info">
+      <div class="date" id="todayDate"></div>
+      <div class="greeting" id="greeting">Boa tarde, Jackson</div>
+    </div>
+  </header>
+
+  <div class="hero-kpis" id="heroKpis"></div>
+
+  <div class="section-title">Módulos</div>
+  <div class="modules">
+    <a class="module" href="hawkins-marketing.html" style="--c-module:var(--marketing);--c-module-2:#5b8cff">
+      <div class="module-icon">L</div>
+      <span class="arrow">→</span>
+      <h3>Comercial · Leads & Propostas</h3>
+      <p class="desc">Captação de leads por canal (Outbound, Tráfego, Webinário, Social Seller, Inbound, Indicação…). Investimento, CPL e mix de canais. Topo do funil comercial.</p>
+      <div class="stats" id="statsMarketing">
+        <div class="stat"><div class="l">Leads no mês</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Investido</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">CPL médio</div><div class="v">—</div></div>
+      </div>
+    </a>
+
+    <a class="module" href="social-selling.html" style="--c-module:var(--social);--c-module-2:#7c5cff">
+      <div class="module-icon">S</div>
+      <span class="arrow">→</span>
+      <h3>Social Selling</h3>
+      <p class="desc">Prospecção, engajamento e conversão multi-canal (LinkedIn, Instagram, WhatsApp). Funil de 7 etapas, metas semanais e mensais, conteúdo autoral.</p>
+      <div class="stats" id="statsSocial">
+        <div class="stat"><div class="l">Prospec. mês</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Reuniões</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Receita</div><div class="v">—</div></div>
+      </div>
+    </a>
+
+    <a class="module" href="comercial.html" style="--c-module:var(--comercial);--c-module-2:#ec4899">
+      <div class="module-icon">C</div>
+      <span class="arrow">→</span>
+      <h3>Comercial · Carteira & Pipeline</h3>
+      <p class="desc">Fundo do funil. Carteira ativa, pendências por cliente, pipeline de novos negócios e plano de vendas (curto e longo prazo). Defesa do MRR + ataque pra crescer.</p>
+      <div class="stats" id="statsComercial">
+        <div class="stat"><div class="l">MRR</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Clientes</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Pendências</div><div class="v">—</div></div>
+      </div>
+    </a>
+
+    <a class="module" href="controle-financeiro.html" style="--c-module:var(--financeiro);--c-module-2:#06b6d4">
+      <div class="module-icon">$</div>
+      <span class="arrow">→</span>
+      <h3>Financeiro · PF + PJ</h3>
+      <p class="desc">Contas a pagar e receber separadas por pessoa física e jurídica. Receitas, despesas, orçamento por categoria, recorrências automáticas.</p>
+      <div class="stats" id="statsFinanceiro">
+        <div class="stat"><div class="l">Saldo PF</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Saldo PJ</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Despesas mês</div><div class="v">—</div></div>
+      </div>
+    </a>
+
+    <a class="module" href="insights.html" style="--c-module:var(--insights);--c-module-2:#ec4899">
+      <div class="module-icon">✦</div>
+      <span class="arrow">→</span>
+      <h3>Insights & IA</h3>
+      <p class="desc">Diagnóstico automático cruzando todos os módulos + geração de estratégia com IA (Claude/OpenAI/Gemini). Templates de mensagem prontos. Direção, não só dados.</p>
+      <div class="stats" id="statsInsights">
+        <div class="stat"><div class="l">Insights críticos</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">IA configurada</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Histórico</div><div class="v">—</div></div>
+      </div>
+    </a>
+
+    <a class="module" href="trafego.html" style="--c-module:var(--trafego);--c-module-2:#E4405F">
+      <div class="module-icon">M</div>
+      <span class="arrow">→</span>
+      <h3>Gestor de Tráfego · Meta</h3>
+      <p class="desc">Análise de páginas Facebook + Instagram via Graph API. Alcance, engajamento, melhor dia/horário, top posts. Exporta PDF estilo Reportei.</p>
+      <div class="stats" id="statsTrafego">
+        <div class="stat"><div class="l">Status</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Páginas</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">PDF</div><div class="v" style="color:var(--text-muted)">on-demand</div></div>
+      </div>
+    </a>
+
+    <a class="module" href="clickup.html" style="--c-module:var(--clickup);--c-module-2:#FF7FAB">
+      <div class="module-icon">CU</div>
+      <span class="arrow">→</span>
+      <h3>ClickUp · Tarefas</h3>
+      <p class="desc">Integração direta com sua conta ClickUp. Visão consolidada de tarefas, prazos, prioridades, responsáveis e listas — sem trocar de aba.</p>
+      <div class="stats" id="statsClickup">
+        <div class="stat"><div class="l">Status</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Tarefas</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Vencidas</div><div class="v">—</div></div>
+      </div>
+    </a>
+
+    <a class="module" href="kommo.html" style="--c-module:var(--kommo);--c-module-2:#118AB2">
+      <div class="module-icon">K</div>
+      <span class="arrow">→</span>
+      <h3>Kommo CRM</h3>
+      <p class="desc">Funil de vendas, calendário de tarefas/eventos e inbox de chats unificados. Integração direta com sua conta Kommo via API V4.</p>
+      <div class="stats" id="statsKommo">
+        <div class="stat"><div class="l">Status</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Pipeline</div><div class="v">—</div></div>
+        <div class="stat"><div class="l">Tarefas</div><div class="v">—</div></div>
+      </div>
+    </a>
+
+  </div>
+
+  <div class="section-title">Atalhos rápidos</div>
+  <div class="quick-grid">
+    <a href="controle-financeiro.html" class="quick" style="--c-quick:#10b981"><span class="q-icon">↑</span><span>Lançar receita</span></a>
+    <a href="controle-financeiro.html" class="quick" style="--c-quick:#ef4444"><span class="q-icon">↓</span><span>Lançar despesa</span></a>
+    <a href="hawkins-marketing.html" class="quick" style="--c-quick:#7c5cff"><span class="q-icon">L</span><span>Lançar leads & investimento</span></a>
+    <a href="social-selling.html" class="quick" style="--c-quick:#E4405F"><span class="q-icon">S</span><span>Atividades SS hoje</span></a>
+    <a href="social-selling.html#leads" class="quick" style="--c-quick:#ec4899"><span class="q-icon">+</span><span>Cadastrar novo lead</span></a>
+    <a href="comercial.html#clients" class="quick" style="--c-quick:#f59e0b"><span class="q-icon">C</span><span>Ver carteira ativa</span></a>
+    <a href="comercial.html#plan" class="quick" style="--c-quick:#ec4899"><span class="q-icon">📋</span><span>Plano de vendas</span></a>
+    <a href="insights.html" class="quick" style="--c-quick:#a855f7"><span class="q-icon">✦</span><span>Diagnóstico + IA</span></a>
+    <a href="insights.html#templates" class="quick" style="--c-quick:#7c5cff"><span class="q-icon">💬</span><span>Templates de mensagem</span></a>
+    <a href="trafego.html" class="quick" style="--c-quick:#1877F2"><span class="q-icon">M</span><span>Relatório Meta · PDF</span></a>
+    <a href="clickup.html" class="quick" style="--c-quick:#7B68EE"><span class="q-icon">CU</span><span>Tarefas ClickUp</span></a>
+    <a href="kommo.html" class="quick" style="--c-quick:#06D6A0"><span class="q-icon">K</span><span>Kommo · Funil & Inbox</span></a>
+    <a href="controle-financeiro.html#asaas" class="quick" style="--c-quick:#00C896"><span class="q-icon">$</span><span>Asaas · Cobranças</span></a>
+    <a href="hawkins-marketing.html#dashboard" class="quick" style="--c-quick:#06b6d4"><span class="q-icon">📊</span><span>Dashboard de leads</span></a>
+    <a href="controle-financeiro.html#dashboard" class="quick" style="--c-quick:#f59e0b"><span class="q-icon">$</span><span>Dashboard financeiro</span></a>
+  </div>
+
+  <!-- Modal Config -->
+  <div class="qv-modal-bg" id="qvModal"><div class="qv-modal" id="qvModalContent"></div></div>
+
+  <div class="status-bar">
+    <span class="live">Todos os sistemas operacionais</span>
+    <span>Hospedado no Netlify · dados privados no navegador · acesso de qualquer dispositivo</span>
+    <span id="lastUpdate"></span>
+  </div>
+</div>
+
+<script>
+// ===== Helpers =====
+const fmtBRL = v => 'R$ ' + Math.abs(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtBRLSigned = v => (v<0?'-':'')+fmtBRL(v);
+const fmtNum = v => (v||0).toLocaleString('pt-BR');
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function parseISO(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+
+function getJSON(key){
+  try{ return JSON.parse(localStorage.getItem(key) || 'null'); }catch(e){ return null; }
+}
+
+// ===== Greeting + date =====
+(function(){
+  const now = new Date();
+  const opts = {weekday:'long', day:'2-digit', month:'long'};
+  document.getElementById('todayDate').textContent = now.toLocaleDateString('pt-BR',opts);
+  const h = now.getHours();
+  const greet = h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
+  document.getElementById('greeting').textContent = `${greet}, Jackson`;
+  document.getElementById('lastUpdate').textContent = 'Atualizado ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+})();
+
+// ===== Marketing (Hawkins) =====
+function loadMarketing(){
+  const data = getJSON('hawkins.marketing.v1') || {};
+  const today = new Date();
+  const ym = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0');
+  const monthKeys = Object.keys(data).filter(k=>k.startsWith(ym));
+  let leads=0, inv=0;
+  const channels = ['outbound','trafego_direto','webinario','social_seller','inbound_marketing','indicacao','reengajamento','trafego_form_nativo','trafego_form_externo','trafego_isca_digital','trafego_front_end','evento_presencial'];
+  monthKeys.forEach(k=>{
+    const r = data[k];
+    channels.forEach(c=> leads += (+r[c]||0));
+    inv += +r.valor_investido||0;
+  });
+  const cpl = leads>0 ? inv/leads : 0;
+  return {leads, inv, cpl, monthKeys: monthKeys.length};
+}
+
+// ===== Social Selling =====
+function loadSocialSelling(){
+  const data = getJSON('envolve.socialselling.v1') || {};
+  const leads = getJSON('envolve.socialselling.leads.v1') || [];
+  const today = new Date();
+  const ym = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0');
+  let prospeccao=0, reunioes=0, receita=0;
+  Object.entries(data).forEach(([iso,day])=>{
+    if(!iso.startsWith(ym)) return;
+    ['linkedin','instagram','whatsapp'].forEach(ch=>{
+      if(!day[ch]) return;
+      prospeccao += (+day[ch].conexoes_enviadas||0)+(+day[ch].mensagens_iniciais||0)+(+day[ch].followups||0)+(+day[ch].dms||0);
+    });
+    if(day.conversao){
+      reunioes += +day.conversao.reunioes_realizadas||0;
+      receita += +day.conversao.vendas_valor||0;
+    }
+  });
+  const leadsActive = leads.filter(l=> ['novo','conversa','qualificado','reuniao'].includes(l.status)).length;
+  return {prospeccao, reunioes, receita, leadsTotal:leads.length, leadsActive};
+}
+
+// ===== Comercial =====
+function loadComercial(){
+  const state = getJSON('envolve.comercial.v1') || {};
+  const clients = state.clients||[];
+  const pendencies = state.pendencies||[];
+  const opps = state.opportunities||[];
+  const churned = state.churned||[];
+  const mrr = clients.reduce((s,c)=>s+(+c.mrr||0),0);
+  const openPend = pendencies.filter(p=>p.status==='open').length;
+  const overduePend = pendencies.filter(p=>p.status==='open' && p.dueDate && p.dueDate<todayISO()).length;
+  const pipeValue = opps.filter(o=>o.stage!=='won').reduce((s,o)=>s+(+o.value||0),0);
+  const forecast = opps.filter(o=>o.stage!=='won').reduce((s,o)=>s+((+o.value||0)*((+o.probability||0)/100)),0);
+  return {mrr, activeClients:clients.length, openPend, overduePend, pipeValue, forecast, churnedTotal:churned.reduce((s,c)=>s+(+c.mrr||0),0), churnedCount:churned.length};
+}
+
+// ===== Financeiro =====
+function loadFinanceiro(){
+  const state = getJSON('controle.financeiro.v1') || {transactions:[],accounts:[]};
+  const accs = state.accounts||[];
+  const txs = state.transactions||[];
+  const accScope = id => (accs.find(a=>a.id===id)?.scope || 'pf');
+  let saldoPf=0, saldoPj=0, despMes=0;
+  const today = new Date();
+  const ym = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0');
+  txs.forEach(t=>{
+    const sc = accScope(t.accountId);
+    const delta = t.type==='income' ? t.value : -t.value;
+    if(sc==='pj') saldoPj += delta; else saldoPf += delta;
+    if(t.type==='expense' && (t.date||'').startsWith(ym)) despMes += t.value;
+  });
+  // Recorrentes ativos próximos do vencimento (próximos 7 dias)
+  const recs = (state.recurrent||[]).filter(r=>r.active);
+  const now = today.getDate();
+  const proxVenc = recs.filter(r=> r.dayOfMonth>=now && r.dayOfMonth<=now+7).length;
+  return {saldoPf, saldoPj, despMes, proxVenc, hasData: txs.length>0};
+}
+
+// ===== Tráfego (Meta) =====
+function loadTrafego(){
+  const s = getJSON('envolve.trafego.v1') || {};
+  return {connected: !!(s.token && s.token.length>20), pages: (s.cachedPages||[]).length, selectedPage: s.selectedPageId||''};
+}
+// ===== ClickUp =====
+function loadClickup(){
+  const s = getJSON('envolve.clickup.v1') || {};
+  const tasks = s.tasks || [];
+  const overdue = tasks.filter(t=> t.due_date && +t.due_date < Date.now() && !/closed|done|complete/i.test(t.status?.status||'')).length;
+  return {connected: !!(s.token && s.token.length>15), tasks: tasks.length, overdue};
+}
+// ===== Kommo =====
+function loadKommoHub(){
+  const s = getJSON('envolve.kommo.v1') || {};
+  return {connected: !!(s.token && s.subdomain), pipelines:(s.pipelines||[]).length, leads:(s.leads||[]).length, tasks:(s.tasks||[]).length, openLeads:(s.leads||[]).filter(l=>!l.closed_at).length};
+}
+// ===== Asaas =====
+function loadAsaasHub(){
+  const s = getJSON('envolve.asaas.v1') || {};
+  const connected = !!(s.apiKey && s.apiKey.length>20);
+  const balance = s.balance?.balance ?? null;
+  const payments = s.payments || [];
+  const pending = payments.filter(p=>p.status==='PENDING').reduce((sum,p)=>sum+(+p.value||0),0);
+  const overdue = payments.filter(p=>p.status==='OVERDUE').reduce((sum,p)=>sum+(+p.value||0),0);
+  return {connected, balance, pending, overdue, payments:payments.length};
+}
+
+// ===== Insights =====
+function loadInsights(){
+  const state = getJSON('envolve.insights.v1') || {};
+  const cfg = state.apiConfig || {};
+  const history = state.history || [];
+  return {configured: !!(cfg.apiKey && cfg.apiKey.length>10), provider: cfg.provider, historyCount: history.length};
+}
+
+// ===== Render hero KPIs =====
+function renderHero(){
+  const m = loadMarketing();
+  const s = loadSocialSelling();
+  const c = loadComercial();
+  const f = loadFinanceiro();
+  const i = loadInsights();
+  const tf = loadTrafego();
+  const cu = loadClickup();
+  const km = loadKommoHub();
+  const az = loadAsaasHub();
+  const saldoTotal = f.saldoPf + f.saldoPj;
+
+  const kpis = [
+    {label:'MRR atual', value:fmtBRL(c.mrr), sub:`${c.activeClients} clientes ativos${c.churnedCount>0?` · ${c.churnedCount} no churn`:''}`, color:'var(--comercial)'},
+    {label:'Pipeline aberto', value:fmtBRL(c.pipeValue), sub:`forecast ${fmtBRL(c.forecast)}`, color:'var(--info)'},
+    {label:'Pendências carteira', value:fmtNum(c.openPend), cls: c.overduePend>0?'neg':'', sub:c.overduePend>0?`${c.overduePend} VENCIDAS`:'todas dentro do prazo', color:'var(--warning)'},
+    {label:'Saldo PF + PJ', value:fmtBRLSigned(saldoTotal), cls: saldoTotal>=0?'pos':'neg', sub:`PF ${fmtBRLSigned(f.saldoPf)} · PJ ${fmtBRLSigned(f.saldoPj)}`, color:'var(--financeiro)'},
+    {label:'Leads captados mês', value:fmtNum(m.leads), sub:m.cpl>0?`CPL ${fmtBRL(m.cpl)}`:`${m.monthKeys} dias lançados`, color:'var(--marketing)'},
+    {label:'Atividades SS mês', value:fmtNum(s.prospeccao), sub:`${s.reunioes} reuniões · ${fmtBRL(s.receita)}`, color:'var(--social)'},
+    ...(az.connected ? [{label:'A receber Asaas', value:fmtBRL(az.pending), cls: az.overdue>0?'neg':'', sub:az.overdue>0?`+ ${fmtBRL(az.overdue)} VENCIDAS`:`saldo ${az.balance!=null?fmtBRL(az.balance):'—'}`, color:'#00C896'}] : []),
+  ];
+  const wrap = document.getElementById('heroKpis');
+  wrap.innerHTML = '';
+  kpis.forEach(k=>{
+    const el = document.createElement('div');
+    el.className = 'hero-kpi';
+    el.style.setProperty('--c-accent', k.color);
+    el.innerHTML = `
+      <div class="label">${k.label}</div>
+      <div class="value ${k.cls||''}">${k.value}</div>
+      <div class="sub">${k.sub}</div>
+    `;
+    wrap.appendChild(el);
+  });
+
+  // Stats de cada módulo
+  const sm = document.getElementById('statsMarketing');
+  if(sm){
+    sm.innerHTML = `
+      <div class="stat"><div class="l">Leads no mês</div><div class="v">${fmtNum(m.leads)}</div></div>
+      <div class="stat"><div class="l">Investido</div><div class="v">${fmtBRL(m.inv)}</div></div>
+      <div class="stat"><div class="l">CPL médio</div><div class="v">${m.cpl>0?fmtBRL(m.cpl):'—'}</div></div>
+    `;
+  }
+  const ss = document.getElementById('statsSocial');
+  if(ss){
+    ss.innerHTML = `
+      <div class="stat"><div class="l">Leads cadastrados</div><div class="v">${fmtNum(s.leadsTotal)}<span style="font-size:11px;color:var(--text-muted);font-weight:400"> (${s.leadsActive} ativos)</span></div></div>
+      <div class="stat"><div class="l">Reuniões mês</div><div class="v">${fmtNum(s.reunioes)}</div></div>
+      <div class="stat"><div class="l">Receita mês</div><div class="v">${fmtBRL(s.receita)}</div></div>
+    `;
+  }
+  const sc = document.getElementById('statsComercial');
+  if(sc){
+    sc.innerHTML = `
+      <div class="stat"><div class="l">MRR</div><div class="v" style="color:var(--success)">${fmtBRL(c.mrr)}</div></div>
+      <div class="stat"><div class="l">Clientes</div><div class="v">${fmtNum(c.activeClients)}</div></div>
+      <div class="stat"><div class="l">Pendências</div><div class="v" style="color:${c.overduePend>0?'var(--danger)':'var(--text)'}">${fmtNum(c.openPend)}</div></div>
+    `;
+  }
+  const sf = document.getElementById('statsFinanceiro');
+  if(sf){
+    sf.innerHTML = `
+      <div class="stat"><div class="l">Saldo PF</div><div class="v ${f.saldoPf>=0?'pos':'neg'}">${fmtBRLSigned(f.saldoPf)}</div></div>
+      <div class="stat"><div class="l">Saldo PJ</div><div class="v ${f.saldoPj>=0?'pos':'neg'}">${fmtBRLSigned(f.saldoPj)}</div></div>
+      <div class="stat"><div class="l">Despesas mês</div><div class="v">${fmtBRL(f.despMes)}</div></div>
+    `;
+  }
+  const si = document.getElementById('statsInsights');
+  if(si){
+    si.innerHTML = `
+      <div class="stat"><div class="l">Diagnóstico</div><div class="v" style="color:var(--insights)">automático</div></div>
+      <div class="stat"><div class="l">IA</div><div class="v" style="color:${i.configured?'var(--success)':'var(--text-muted)'}">${i.configured?'ativa':'configurar'}</div></div>
+      <div class="stat"><div class="l">Histórico</div><div class="v">${fmtNum(i.historyCount)}</div></div>
+    `;
+  }
+  const stf = document.getElementById('statsTrafego');
+  if(stf){
+    stf.innerHTML = `
+      <div class="stat"><div class="l">Status</div><div class="v" style="color:${tf.connected?'var(--success)':'var(--text-muted)'}">${tf.connected?'conectado':'configurar'}</div></div>
+      <div class="stat"><div class="l">Páginas</div><div class="v">${fmtNum(tf.pages)}</div></div>
+      <div class="stat"><div class="l">Selecionada</div><div class="v" style="font-size:11px;color:var(--text-muted)">${tf.selectedPage?'sim':'nenhuma'}</div></div>
+    `;
+  }
+  const scu = document.getElementById('statsClickup');
+  if(scu){
+    scu.innerHTML = `
+      <div class="stat"><div class="l">Status</div><div class="v" style="color:${cu.connected?'var(--success)':'var(--text-muted)'}">${cu.connected?'conectado':'configurar'}</div></div>
+      <div class="stat"><div class="l">Tarefas</div><div class="v">${fmtNum(cu.tasks)}</div></div>
+      <div class="stat"><div class="l">Vencidas</div><div class="v" style="color:${cu.overdue>0?'var(--danger)':'var(--text)'}">${fmtNum(cu.overdue)}</div></div>
+    `;
+  }
+  const sk = document.getElementById('statsKommo');
+  if(sk){
+    sk.innerHTML = `
+      <div class="stat"><div class="l">Status</div><div class="v" style="color:${km.connected?'var(--success)':'var(--text-muted)'}">${km.connected?'conectado':'configurar'}</div></div>
+      <div class="stat"><div class="l">Pipeline aberto</div><div class="v">${fmtNum(km.openLeads)}</div></div>
+      <div class="stat"><div class="l">Tarefas</div><div class="v">${fmtNum(km.tasks)}</div></div>
+    `;
+  }
+}
+
+renderHero();
+// Re-renderizar quando voltar pro hub
+window.addEventListener('focus', renderHero);
+window.addEventListener('storage', renderHero);
+
+// (Visão Rápida removida — Notion e Vagas agora são módulos dedicados)
+
+
+</script>
+</body>
+</html>

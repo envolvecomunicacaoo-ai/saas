@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="sync.js"></script>
+<title>Envolve · Comercial</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<style>
+  :root{
+    --bg:#0a0e1a; --surface:#111827; --surface-2:#1a2233; --border:#252f44;
+    --text:#e8ecf3; --text-dim:#8b95a8; --text-muted:#5c6680;
+    --accent:#f59e0b; --accent-2:#7c5cff;
+    --success:#10b981; --warning:#f59e0b; --danger:#ef4444; --info:#06b6d4;
+    --active:#10b981; --attention:#f59e0b; --delayed:#ef4444; --churned:#64748b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",sans-serif;
+    background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;
+    background-image:radial-gradient(circle at 100% 0%,rgba(245,158,11,.08),transparent 50%),
+                     radial-gradient(circle at 0% 100%,rgba(124,92,255,.06),transparent 50%);
+    background-attachment:fixed;
+  }
+  .app{max-width:1400px;margin:0 auto;padding:24px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#ec4899);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:white}
+  .brand h1{font-size:18px;font-weight:600;letter-spacing:-.01em}
+  .brand p{font-size:12px;color:var(--text-dim);margin-top:2px}
+  .header-actions{display:flex;gap:8px;align-items:center}
+  .badge{font-size:11px;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim)}
+  .badge.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:6px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+  .mrr-pill{display:flex;flex-direction:column;gap:2px;padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:14px;font-size:11px;line-height:1.3}
+  .mrr-pill .lbl{color:var(--text-dim);font-size:10px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+  .mrr-pill .val{font-weight:700;font-size:16px;color:var(--success);letter-spacing:-.02em}
+
+  nav.tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--surface);padding:4px;border-radius:12px;border:1px solid var(--border);width:fit-content;flex-wrap:wrap}
+  .tab{padding:8px 18px;border-radius:8px;cursor:pointer;color:var(--text-dim);font-weight:500;font-size:13px;border:none;background:transparent;transition:all .15s}
+  .tab:hover{color:var(--text)}
+  .tab.active{background:var(--surface-2);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+
+  .panel{display:none;animation:fadeIn .2s ease}
+  .panel.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+  .card h2{font-size:14px;font-weight:600;margin-bottom:14px;letter-spacing:-.01em;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .card h2 .sub{font-size:11px;color:var(--text-muted);font-weight:400;text-transform:uppercase;letter-spacing:.05em}
+
+  .btn{padding:10px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);cursor:pointer;font-weight:500;font-size:13px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:#222e44;border-color:#3a4660}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#ec4899);border-color:transparent;color:white}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-success{background:linear-gradient(135deg,var(--success),#059669);border-color:transparent;color:white}
+  .btn-danger{background:transparent;color:var(--danger);border-color:rgba(239,68,68,.3)}
+  .btn-danger:hover{background:rgba(239,68,68,.1)}
+  .btn-ghost{background:transparent}
+  .btn-sm{padding:6px 10px;font-size:12px}
+
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+  .form-group{display:flex;flex-direction:column;gap:6px}
+  .form-group label{font-size:11px;color:var(--text-dim);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+  .form-group input,.form-group select,.form-group textarea{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;font-family:inherit;transition:all .15s}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+  .form-group textarea{resize:vertical;min-height:60px}
+
+  /* ===== KPIs ===== */
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--c-accent,var(--accent))}
+  .kpi-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;font-weight:600}
+  .kpi-value{font-size:24px;font-weight:700;letter-spacing:-.02em}
+  .kpi-value.pos{color:var(--success)}
+  .kpi-value.neg{color:var(--danger)}
+  .kpi-trend{font-size:11px;margin-top:6px;color:var(--text-muted)}
+
+  /* ===== Client cards ===== */
+  .client-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px}
+  .client-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;border-left:4px solid var(--c-status,var(--success));transition:all .15s}
+  .client-card:hover{transform:translateY(-2px);border-color:#3a4660}
+  .client-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:10px}
+  .client-name{font-size:16px;font-weight:600;letter-spacing:-.01em}
+  .client-mrr{font-size:18px;font-weight:700;color:var(--success);letter-spacing:-.02em}
+  .client-meta{font-size:11px;color:var(--text-dim);margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap}
+  .client-meta span{display:inline-flex;align-items:center;gap:4px}
+  .status-tag{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .status-tag.active{background:rgba(16,185,129,.15);color:var(--success)}
+  .status-tag.attention{background:rgba(245,158,11,.15);color:var(--warning)}
+  .status-tag.delayed{background:rgba(239,68,68,.15);color:var(--danger)}
+  .services-list{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;font-size:12px}
+  .service-row{display:flex;justify-content:space-between;color:var(--text-dim);padding:4px 0}
+  .service-row strong{color:var(--text);font-weight:500}
+  .pendencies{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-top:10px}
+  .pendencies-title{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between}
+  .pendency-item{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px dashed var(--border);font-size:12px}
+  .pendency-item:last-child{border-bottom:none}
+  .pendency-item .check{width:16px;height:16px;border:1.5px solid var(--text-muted);border-radius:4px;cursor:pointer;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--success);transition:all .15s}
+  .pendency-item .check.done{background:var(--success);border-color:var(--success);color:white}
+  .pendency-item .check:hover{border-color:var(--success)}
+  .pendency-item .text{flex:1;line-height:1.4}
+  .pendency-item .text.done{text-decoration:line-through;color:var(--text-muted)}
+  .pendency-item .due{font-size:10px;color:var(--text-muted);margin-top:2px}
+  .pendency-item .due.urgent{color:var(--danger)}
+  .pendency-item .del{background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:14px;padding:2px}
+  .pendency-item .del:hover{color:var(--danger)}
+  .add-pendency{display:flex;gap:6px;margin-top:8px}
+  .add-pendency input{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:12px;font-family:inherit}
+  .add-pendency input:focus{outline:none;border-color:var(--accent)}
+  .client-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+
+  /* ===== Pipeline (Kanban) ===== */
+  .kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;overflow-x:auto;min-height:400px}
+  .kanban-col{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px;min-width:200px}
+  .kanban-col-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-dim);font-weight:700}
+  .kanban-col-header .count{background:var(--surface-2);padding:2px 8px;border-radius:99px;color:var(--text);font-weight:700}
+  .kanban-col-value{font-size:11px;color:var(--text-muted);margin-bottom:10px}
+  .kanban-card{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer;transition:all .12s;border-left:3px solid var(--c-stage,var(--accent))}
+  .kanban-card:hover{border-color:#3a4660;transform:translateY(-1px)}
+  .kanban-card .name{font-size:13px;font-weight:600;margin-bottom:4px}
+  .kanban-card .meta{font-size:11px;color:var(--text-dim);display:flex;justify-content:space-between;align-items:center}
+  .kanban-card .meta .v{color:var(--success);font-weight:700}
+
+  /* ===== Plan ===== */
+  .plan-tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--surface);padding:4px;border-radius:10px;border:1px solid var(--border);width:fit-content}
+  .plan-tab{padding:8px 16px;border:none;background:transparent;color:var(--text-dim);border-radius:7px;cursor:pointer;font-weight:600;font-size:12px;font-family:inherit}
+  .plan-tab.active{background:var(--surface-2);color:var(--text)}
+  .plan-tab.active.short{color:var(--danger)}
+  .plan-tab.active.long{color:var(--info)}
+
+  .gap-banner{background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(245,158,11,.1));border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:18px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .gap-banner .icon{width:44px;height:44px;border-radius:12px;background:rgba(239,68,68,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+  .gap-banner .info{flex:1;min-width:200px}
+  .gap-banner .info .title{font-size:13px;font-weight:600;margin-bottom:2px}
+  .gap-banner .info .sub{font-size:12px;color:var(--text-dim)}
+  .gap-banner .stat{text-align:right}
+  .gap-banner .stat .v{font-size:22px;font-weight:700;color:var(--danger);letter-spacing:-.02em}
+  .gap-banner .stat .l{font-size:11px;color:var(--text-dim)}
+
+  .action-list{display:flex;flex-direction:column;gap:8px}
+  .action-item{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:12px;display:grid;grid-template-columns:auto 1fr auto auto auto;gap:12px;align-items:center}
+  .action-item .check{width:18px;height:18px;border:1.5px solid var(--text-muted);border-radius:5px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:white;transition:all .15s}
+  .action-item .check.done{background:var(--success);border-color:var(--success)}
+  .action-item .text{font-size:13px}
+  .action-item .text.done{text-decoration:line-through;color:var(--text-muted)}
+  .action-item .meta{font-size:11px;color:var(--text-dim)}
+  .action-item .value{font-weight:700;color:var(--success)}
+  .action-item .del{background:transparent;border:none;color:var(--text-muted);cursor:pointer;padding:4px}
+  .action-item .del:hover{color:var(--danger)}
+
+  .strategy-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+  .strategy-card{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:16px;border-top:3px solid var(--c-strat,var(--accent))}
+  .strategy-card h4{font-size:13px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .strategy-card .num{width:24px;height:24px;border-radius:50%;background:var(--c-strat,var(--accent));color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .strategy-card textarea{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-size:13px;font-family:inherit;min-height:90px;resize:vertical}
+  .strategy-card textarea:focus{outline:none;border-color:var(--c-strat)}
+
+  .target-row{display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--bg);border-radius:8px;margin-top:8px;font-size:13px}
+  .target-row .lbl{color:var(--text-dim)}
+  .target-row .val{font-weight:700;font-size:16px}
+
+  .progress-bar{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;margin-top:8px}
+  .progress-bar .fill{height:100%;background:linear-gradient(90deg,var(--success),var(--accent));transition:width .4s}
+
+  /* ===== Modal ===== */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
+  .modal-bg.show{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:560px;width:90%;max-height:90vh;overflow-y:auto}
+  .modal h3{font-size:16px;margin-bottom:14px;font-weight:600}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);padding:12px 18px;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.3);display:flex;gap:8px;align-items:center;font-size:13px;font-weight:500;transform:translateY(120%);transition:transform .25s ease;z-index:300}
+  .toast.show{transform:translateY(0)}
+  .toast.success{border-color:var(--success)}
+  .toast.success::before{content:"✓";color:var(--success);font-weight:700}
+  .toast.error{border-color:var(--danger)}
+
+  .empty-state{text-align:center;padding:30px;color:var(--text-dim)}
+  .empty-state .icon{font-size:30px;margin-bottom:8px}
+
+  .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px}
+  .chart-wrap{position:relative;height:280px}
+
+  @media(max-width:768px){
+    .app{padding:14px}
+    nav.tabs{overflow-x:auto;width:100%}
+    .kanban{grid-template-columns:repeat(5,minmax(180px,1fr));overflow-x:auto}
+    .action-item{grid-template-columns:auto 1fr auto;gap:8px}
+    .action-item .meta,.action-item .value{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">C</div>
+      <div>
+        <h1>Envolve · Comercial</h1>
+        <p>Carteira ativa, pipeline e plano de vendas</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="./" style="font-size:12px;padding:6px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);text-decoration:none;display:inline-flex;align-items:center;gap:6px">← Envolve</a>
+      <div class="mrr-pill"><span class="lbl">MRR ATUAL</span><span class="val" id="topMrr">R$ 0,00</span></div>
+      <span class="badge live" id="syncBadge">Sincronizado</span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-panel="dashboard">Dashboard</button>
+    <button class="tab" data-panel="clients">Carteira Ativa</button>
+    <button class="tab" data-panel="pendencies">Pendências</button>
+    <button class="tab" data-panel="plan">Plano de Vendas</button>
+    <button class="tab" data-panel="pipeline">Pipeline</button>
+    <button class="tab" data-panel="churn">Churn</button>
+    <button class="tab" data-panel="data">Dados</button>
+  </nav>
+
+  <!-- ========== DASHBOARD ========== -->
+  <section class="panel active" id="panel-dashboard">
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="chart-grid">
+      <div class="card" style="margin-bottom:0">
+        <h2>MRR por cliente <span class="sub">contribuição absoluta</span></h2>
+        <div class="chart-wrap"><canvas id="chartMrrByClient"></canvas></div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <h2>Concentração de receita <span class="sub">top vs cauda</span></h2>
+        <div class="chart-wrap"><canvas id="chartConcentration"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h2>Saúde da carteira <span class="sub">indicadores estratégicos</span></h2>
+      <div id="healthChecks"></div>
+    </div>
+  </section>
+
+  <!-- ========== CLIENTS ========== -->
+  <section class="panel" id="panel-clients">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div>
+        <h2 style="font-size:18px;font-weight:600">Carteira ativa</h2>
+        <p style="font-size:13px;color:var(--text-dim);margin-top:4px" id="clientsSummary"></p>
+      </div>
+      <button class="btn btn-primary" id="addClientBtn">+ Novo cliente</button>
+    </div>
+    <div class="client-grid" id="clientGrid"></div>
+  </section>
+
+  <!-- ========== PENDENCIES ========== -->
+  <section class="panel" id="panel-pendencies">
+    <div class="card">
+      <h2>Pendências em aberto <span class="sub">visão consolidada da operação</span></h2>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Lista única de tudo que está em aberto na carteira. Use pra evitar gargalo na entrega e proteger retenção.</p>
+      <div id="allPendenciesWrap"></div>
+    </div>
+    <div class="card">
+      <h2>Pendências resolvidas recentemente</h2>
+      <div id="donePendenciesWrap"></div>
+    </div>
+  </section>
+
+  <!-- ========== PLAN ========== -->
+  <section class="panel" id="panel-plan">
+    <div class="gap-banner">
+      <div class="icon">⚠</div>
+      <div class="info">
+        <div class="title">Cenário atual: queda recente no faturamento</div>
+        <div class="sub" id="gapDescription">3 clientes perdidos · necessidade imediata de reposição de receita</div>
+      </div>
+      <div class="stat">
+        <div class="v" id="gapValue">−R$ 5.000</div>
+        <div class="l">a recuperar/superar</div>
+      </div>
+    </div>
+
+    <div class="plan-tabs">
+      <button class="plan-tab active short" data-plan="short">CURTO PRAZO · caixa imediato</button>
+      <button class="plan-tab long" data-plan="long">MÉDIO/LONGO · sustentável</button>
+    </div>
+
+    <div id="plan-short">
+      <div class="card">
+        <h2>1. Reativação de leads antigos <span class="sub">menor CAC, ciclo curto</span></h2>
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px">Liste leads que entraram em contato nos últimos 6-12 meses e não fecharam. Eles já conhecem o serviço — vendê-los é mais rápido que prospect frio.</p>
+        <div class="action-list" id="reactivationList"></div>
+        <div style="margin-top:12px"><button class="btn btn-sm" id="addReactivation">+ Adicionar lead pra reativar</button></div>
+      </div>
+
+      <div class="card">
+        <h2>2. Upsell na base atual <span class="sub">vender mais pra quem já compra</span></h2>
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px">Identifique cada cliente e qual oferta adicional faz sentido (mais serviços, mais horas, novo produto). Caminho mais rápido pra subir o ticket sem captação.</p>
+        <div class="action-list" id="upsellList"></div>
+        <div style="margin-top:12px"><button class="btn btn-sm" id="addUpsell">+ Adicionar oportunidade de upsell</button></div>
+      </div>
+
+      <div class="card">
+        <h2>3. Prospecção ativa (outbound) <span class="sub">caçar quem está pronto pra comprar</span></h2>
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px">Foco em ICP qualificado, mensagem direta, oferta clara, ciclo curto. Volume é amigo nessa fase.</p>
+        <div class="form-grid" style="margin-bottom:14px">
+          <div class="form-group">
+            <label>Meta semanal de novos contatos</label>
+            <input type="number" id="outbWeekTarget" min="0">
+          </div>
+          <div class="form-group">
+            <label>Meta semanal de reuniões</label>
+            <input type="number" id="outbMeetTarget" min="0">
+          </div>
+          <div class="form-group">
+            <label>Ticket alvo (R$)</label>
+            <input type="number" id="outbTicketTarget" min="0" step="100">
+          </div>
+        </div>
+        <div class="action-list" id="prospectsList"></div>
+        <div style="margin-top:12px"><button class="btn btn-sm" id="addProspect">+ Adicionar prospect ativo</button></div>
+      </div>
+    </div>
+
+    <div id="plan-long" style="display:none">
+      <div class="card">
+        <h2>Estrutura de funil <span class="sub">previsibilidade comercial</span></h2>
+        <p style="font-size:12px;color:var(--text-dim);margin-bottom:12px">Defina ações pra alimentar cada estágio do funil. Topo = atrair quem nem te conhece. Meio = qualificar quem está pesquisando. Fundo = fechar quem decide.</p>
+        <div class="strategy-grid">
+          <div class="strategy-card" style="--c-strat:#7c5cff">
+            <h4><span class="num">1</span>Topo do Funil · Atrair</h4>
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Conteúdo, SEO, mídia paga, indicações, parcerias.</p>
+            <textarea data-plan-key="funnelTop" placeholder="Ex: Publicar 8 conteúdos/mês no LinkedIn + Reels com pilares de autoridade..."></textarea>
+          </div>
+          <div class="strategy-card" style="--c-strat:#06b6d4">
+            <h4><span class="num">2</span>Meio do Funil · Qualificar</h4>
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Iscas digitais, webinários, diagnósticos, e-mails de nutrição.</p>
+            <textarea data-plan-key="funnelMid" placeholder="Ex: Diagnóstico gratuito de 30min para qualquer lead que pediu informação..."></textarea>
+          </div>
+          <div class="strategy-card" style="--c-strat:#10b981">
+            <h4><span class="num">3</span>Fundo do Funil · Fechar</h4>
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Demonstração, proposta, prova social, garantias.</p>
+            <textarea data-plan-key="funnelBot" placeholder="Ex: Proposta visual com cases dos clientes atuais e ROI esperado..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Posicionamento e oferta <span class="sub">por que comprar de você</span></h2>
+        <div class="strategy-grid">
+          <div class="strategy-card" style="--c-strat:#f59e0b">
+            <h4><span class="num">P</span>Posicionamento</h4>
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Como você se diferencia? Pra quem você é a melhor escolha?</p>
+            <textarea data-plan-key="positioning" placeholder="Ex: Agência boutique pra PMEs que querem performance sem perder identidade. Ticket R$ 1.5-3k, foco em retenção..."></textarea>
+          </div>
+          <div class="strategy-card" style="--c-strat:#ec4899">
+            <h4><span class="num">O</span>Oferta principal</h4>
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Pacote concreto: o quê + por quanto + entregando o quê.</p>
+            <textarea data-plan-key="offer" placeholder="Ex: Pacote 'Decola Marketing' R$ 1.500/mês: gestão completa de mídia + 8 peças/mês + relatório mensal..."></textarea>
+          </div>
+          <div class="strategy-card" style="--c-strat:#a855f7">
+            <h4><span class="num">+</span>Up-tier (oferta premium)</h4>
+            <p style="font-size:11px;color:var(--text-dim);margin-bottom:8px">Versão de cima do pacote — vital pra crescer ticket médio.</p>
+            <textarea data-plan-key="offerPremium" placeholder="Ex: 'Decola Premium' R$ 3.500/mês: tudo do anterior + estratégia trimestral + LP + automação..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Previsibilidade comercial <span class="sub">metas trimestrais</span></h2>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Meta de MRR para o próximo trimestre</label>
+            <input type="number" id="goalMrr" min="0" step="500">
+          </div>
+          <div class="form-group">
+            <label>Meta de novos clientes/mês</label>
+            <input type="number" id="goalNewClients" min="0">
+          </div>
+          <div class="form-group">
+            <label>Ticket médio alvo (R$)</label>
+            <input type="number" id="goalTicket" min="0" step="100">
+          </div>
+          <div class="form-group">
+            <label>Meta de redução de churn (% mensal)</label>
+            <input type="number" id="goalChurn" min="0" step="0.1">
+          </div>
+        </div>
+        <div class="target-row" style="margin-top:14px">
+          <span class="lbl">Progresso atual MRR vs meta:</span>
+          <span class="val" id="mrrVsGoal">—</span>
+        </div>
+        <div class="progress-bar"><div class="fill" id="mrrProgressFill" style="width:0%"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== PIPELINE ========== -->
+  <section class="panel" id="panel-pipeline">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div>
+        <h2 style="font-size:18px;font-weight:600">Pipeline de novas oportunidades</h2>
+        <p style="font-size:13px;color:var(--text-dim);margin-top:4px" id="pipelineSummary"></p>
+      </div>
+      <button class="btn btn-primary" id="addOppBtn">+ Nova oportunidade</button>
+    </div>
+    <div class="kanban" id="kanban"></div>
+  </section>
+
+  <!-- ========== CHURN ========== -->
+  <section class="panel" id="panel-churn">
+    <div class="card">
+      <h2>Histórico de churn <span class="sub">aprenda com quem saiu</span></h2>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Registre clientes que saíram com motivo. Vai te ajudar a identificar padrões (preço, produto, atendimento, fit) e prevenir o próximo churn.</p>
+      <button class="btn btn-primary btn-sm" id="addChurnBtn">+ Registrar saída</button>
+    </div>
+    <div id="churnList"></div>
+  </section>
+
+  <!-- ========== DATA ========== -->
+  <section class="panel" id="panel-data">
+    <div class="card">
+      <h2>Exportar</h2>
+      <p style="color:var(--text-dim);margin-bottom:14px">Baixe a carteira em CSV ou backup completo em JSON.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="exportCsv">Exportar carteira (CSV)</button>
+        <button class="btn" id="exportJson">Exportar JSON (backup)</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Importar</h2>
+      <p style="color:var(--text-dim);margin-bottom:14px">Restaurar a partir de backup JSON. <strong>Sobrescreve dados.</strong></p>
+      <input type="file" id="importJson" accept=".json" style="font-family:inherit">
+    </div>
+    <div class="card">
+      <h2>Zona de risco</h2>
+      <button class="btn btn-danger" id="resetData">Apagar todos os dados</button>
+    </div>
+  </section>
+</div>
+
+<div class="modal-bg" id="modal"><div class="modal" id="modalContent"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============= CONFIG =============
+const STORAGE_KEY = 'envolve.comercial.v1';
+
+const STAGES = [
+  {key:'lead',       label:'Lead',          color:'#94a3b8'},
+  {key:'qualified',  label:'Qualificado',   color:'#06b6d4'},
+  {key:'meeting',    label:'Reunião',       color:'#7c5cff'},
+  {key:'proposal',   label:'Proposta',      color:'#f59e0b'},
+  {key:'won',        label:'Fechado-Ganho', color:'#10b981'},
+];
+
+const SEED_CLIENTS = [
+  {id:'cli-ia-camaro',    name:'IA Camaro',          mrr:1350, services:[{name:'Serviço A',price:350},{name:'Serviço B',price:1000}], startDate:'2025-01-01', status:'active', notes:''},
+  {id:'cli-comece',       name:'Comece Serralheria', mrr:1500, services:[{name:'Gestão completa',price:1500}], startDate:'2025-01-01', status:'active', notes:''},
+  {id:'cli-royal-face',   name:'Royal Face',         mrr:1000, services:[{name:'Gestão completa',price:1000}], startDate:'2025-01-01', status:'active', notes:''},
+  {id:'cli-saulo',        name:'Saulo de Freitas',   mrr:1500, services:[{name:'Gestão completa',price:1500}], startDate:'2025-01-01', status:'active', notes:''},
+  {id:'cli-lavarsi',      name:'Lavarsi',            mrr:1500, services:[{name:'Gestão completa',price:1500}], startDate:'2025-01-01', status:'active', notes:''},
+  {id:'cli-ackermann',    name:'Ackermann',          mrr:1500, services:[{name:'Gestão completa',price:1500}], startDate:'2025-01-01', status:'active', notes:''},
+  {id:'cli-grupo-camaro', name:'Grupo Camaro',       mrr:2500, services:[{name:'Gestão completa',price:2500}], startDate:'2025-01-01', status:'active', notes:''},
+];
+
+// ============= STATE =============
+let state = {
+  clients: [],
+  pendencies: [],   // {id, clientId, title, status:'open'|'done', dueDate, createdAt}
+  opportunities: [], // {id, name, contact, value, stage, probability, expectedClose, source, notes}
+  churned: [],       // {id, name, mrr, startDate, churnDate, reason}
+  reactivation: [],  // {id, leadName, lastContact, expectedValue, status:'open'|'done', notes}
+  upsell: [],        // {id, clientId, offer, expectedValue, status, notes}
+  prospects: [],     // {id, name, segment, contact, status, notes}
+  plan: {
+    funnelTop:'', funnelMid:'', funnelBot:'',
+    positioning:'', offer:'', offerPremium:'',
+    goalMrr:25000, goalNewClients:2, goalTicket:1800, goalChurn:2,
+    outbWeekTarget:40, outbMeetTarget:5, outbTicketTarget:1500,
+    gapValue:5000,
+  }
+};
+let charts = {};
+
+// ============= STORAGE =============
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ const parsed = JSON.parse(raw); Object.assign(state, parsed); }
+  }catch(e){}
+  if(!state.clients || !state.clients.length) state.clients = JSON.parse(JSON.stringify(SEED_CLIENTS));
+  ['pendencies','opportunities','churned','reactivation','upsell','prospects'].forEach(k=>{ if(!state[k]) state[k]=[]; });
+  if(!state.plan) state.plan = {};
+  ['funnelTop','funnelMid','funnelBot','positioning','offer','offerPremium'].forEach(k=>{ if(state.plan[k]===undefined) state.plan[k]=''; });
+  ['goalMrr','goalNewClients','goalTicket','goalChurn','outbWeekTarget','outbMeetTarget','outbTicketTarget','gapValue'].forEach(k=>{ if(state.plan[k]===undefined) state.plan[k]=0; });
+}
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  document.getElementById('syncBadge').textContent = 'Salvo · ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  updateTopMrr();
+}
+
+// ============= HELPERS =============
+const fmtBRL = v => 'R$ ' + (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtBRLk = v => v>=1000 ? 'R$ '+(v/1000).toFixed(1).replace('.',',')+'k' : fmtBRL(v);
+const fmtNum = v => (v||0).toLocaleString('pt-BR');
+const fmtPct = v => (v||0).toFixed(1)+'%';
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function uid(){ return 'id-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8); }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function totalMrr(){ return state.clients.reduce((s,c)=>s+(+c.mrr||0),0); }
+function activeClients(){ return state.clients.length; }
+function avgTicket(){ return activeClients()>0 ? totalMrr()/activeClients() : 0; }
+function clientById(id){ return state.clients.find(c=>c.id===id); }
+function pendenciesOf(clientId, status){ return state.pendencies.filter(p=>p.clientId===clientId && (!status || p.status===status)); }
+function clientStatus(c){
+  const open = pendenciesOf(c.id, 'open');
+  if(open.some(p=>p.dueDate && p.dueDate<todayISO())) return 'delayed';
+  if(open.length>0) return 'attention';
+  return 'active';
+}
+function statusColor(st){ return {active:'var(--success)',attention:'var(--warning)',delayed:'var(--danger)'}[st] || 'var(--success)'; }
+
+function toast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(()=>t.classList.remove('show'), 2400);
+}
+function updateTopMrr(){
+  document.getElementById('topMrr').textContent = fmtBRL(totalMrr());
+}
+function openModal(html){ document.getElementById('modalContent').innerHTML=html; document.getElementById('modal').classList.add('show'); }
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
+
+// ============= TABS =============
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+    if(btn.dataset.panel==='dashboard') renderDashboard();
+    if(btn.dataset.panel==='clients') renderClients();
+    if(btn.dataset.panel==='pendencies') renderPendencies();
+    if(btn.dataset.panel==='plan') renderPlan();
+    if(btn.dataset.panel==='pipeline') renderPipeline();
+    if(btn.dataset.panel==='churn') renderChurn();
+  });
+});
+
+// ============= DASHBOARD =============
+function renderDashboard(){
+  const mrr = totalMrr();
+  const active = activeClients();
+  const ticket = avgTicket();
+  const totalChurn = state.churned.reduce((s,c)=>s+(+c.mrr||0),0);
+  const churnCount = state.churned.length;
+  const pipeValue = state.opportunities.filter(o=>o.stage!=='won').reduce((s,o)=>s+(+o.value||0),0);
+  const forecastValue = state.opportunities.filter(o=>o.stage!=='won').reduce((s,o)=>s+((+o.value||0)*((+o.probability||0)/100)),0);
+  const wonValue = state.opportunities.filter(o=>o.stage==='won').reduce((s,o)=>s+(+o.value||0),0);
+  const openPendencies = state.pendencies.filter(p=>p.status==='open').length;
+
+  const kpis = [
+    {label:'MRR atual', value:fmtBRL(mrr), color:'var(--success)', sub:`${active} clientes ativos`},
+    {label:'Ticket médio', value:fmtBRL(ticket), color:'var(--accent)', sub:'(MRR / clientes)'},
+    {label:'Churn acumulado', value:fmtBRL(totalChurn), cls:'neg', color:'var(--danger)', sub:`${churnCount} clientes perdidos`},
+    {label:'Pipeline aberto', value:fmtBRL(pipeValue), color:'var(--info)', sub:`${state.opportunities.filter(o=>o.stage!=='won').length} oportunidades`},
+    {label:'Forecast (ponderado)', value:fmtBRL(forecastValue), color:'var(--accent)', sub:'soma × probabilidade'},
+    {label:'Pendências em aberto', value:fmtNum(openPendencies), color:'var(--warning)', sub:'ações em execução'},
+  ];
+  const kg = document.getElementById('kpiGrid'); kg.innerHTML='';
+  kpis.forEach(k=>{
+    const el = document.createElement('div'); el.className='kpi'; el.style.setProperty('--c-accent',k.color);
+    el.innerHTML = `<div class="kpi-label">${k.label}</div><div class="kpi-value ${k.cls||''}">${k.value}</div><div class="kpi-trend">${k.sub}</div>`;
+    kg.appendChild(el);
+  });
+
+  // Chart MRR por cliente
+  const sorted = [...state.clients].sort((a,b)=>b.mrr-a.mrr);
+  drawChart('chartMrrByClient',{
+    type:'bar',
+    data:{labels:sorted.map(c=>c.name),datasets:[{data:sorted.map(c=>c.mrr),backgroundColor:'#10b981',borderRadius:6}]},
+    options:{...chartOpts(),indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>fmtBRL(c.parsed.x)}}}}
+  });
+
+  // Concentração: top 3 vs resto
+  const top3 = sorted.slice(0,3).reduce((s,c)=>s+c.mrr,0);
+  const rest = sorted.slice(3).reduce((s,c)=>s+c.mrr,0);
+  const top3Pct = mrr>0 ? (top3/mrr*100) : 0;
+  drawChart('chartConcentration',{
+    type:'doughnut',
+    data:{labels:['Top 3 clientes','Demais clientes'],datasets:[{data:[top3,rest],backgroundColor:['#f59e0b','#7c5cff'],borderColor:'#0a0e1a',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#e8ecf3',font:{size:12}}},tooltip:{callbacks:{label:c=>c.label+': '+fmtBRL(c.parsed)+' ('+ (mrr>0?(c.parsed/mrr*100).toFixed(1):0) +'%)'}}}}
+  });
+
+  // Health checks
+  const hc = document.getElementById('healthChecks');
+  hc.innerHTML = '';
+  const checks = [];
+  if(top3Pct>50) checks.push({type:'warning',title:`Top 3 clientes representam ${top3Pct.toFixed(0)}% do MRR`,text:'Concentração alta. Perder 1 deles dói. Diversifique.'});
+  if(active<10) checks.push({type:'warning',title:`Carteira com ${active} clientes ativos`,text:'Base pequena = volatilidade alta. Cada cliente vale muito; um churn movimenta o caixa significativamente.'});
+  if(ticket<1500) checks.push({type:'info',title:`Ticket médio R$ ${ticket.toFixed(0)}`,text:'Ticket abaixo de R$ 1.500 limita escalabilidade. Considere oferta premium.'});
+  if(openPendencies>0) checks.push({type:'warning',title:`${openPendencies} pendências em aberto na operação`,text:'Pendência atrasada é gatilho de churn. Trate com prioridade.'});
+  const grossChurn = state.churned.length>0 && (state.churned.length+active)>0 ? (state.churned.length/(state.churned.length+active)*100) : 0;
+  if(grossChurn>20) checks.push({type:'danger',title:`Churn bruto histórico de ${grossChurn.toFixed(0)}%`,text:'Investigue a fundo o motivo. Marketing escala vazamento se churn não for resolvido.'});
+  if(checks.length===0) checks.push({type:'success',title:'Carteira saudável',text:'Sem alertas críticos no momento. Mantenha a defesa do MRR e siga atacando.'});
+  checks.forEach(c=>{
+    const colors = {warning:'var(--warning)',danger:'var(--danger)',info:'var(--info)',success:'var(--success)'};
+    const div = document.createElement('div');
+    div.style.cssText = `padding:12px;border-left:3px solid ${colors[c.type]};background:var(--surface-2);border-radius:6px;margin-bottom:8px`;
+    div.innerHTML = `<div style="font-weight:600;font-size:13px;color:${colors[c.type]}">${c.title}</div><div style="font-size:12px;color:var(--text-dim);margin-top:4px">${c.text}</div>`;
+    hc.appendChild(div);
+  });
+}
+
+function chartOpts(opts={}){
+  return {
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{labels:{color:'#e8ecf3',font:{size:11}}},tooltip:{backgroundColor:'#111827',borderColor:'#252f44',borderWidth:1,padding:10}},
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8b95a8',font:{size:11}}},
+      y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8b95a8',font:{size:11}}}
+    }
+  };
+}
+function drawChart(id,config){
+  if(charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  if(ctx.tagName!=='CANVAS'){ const c=document.createElement('canvas');c.id=id;ctx.replaceWith(c); }
+  charts[id] = new Chart(document.getElementById(id), config);
+}
+
+// ============= CLIENTS =============
+function renderClients(){
+  const grid = document.getElementById('clientGrid'); grid.innerHTML='';
+  const sorted = [...state.clients].sort((a,b)=>b.mrr-a.mrr);
+  sorted.forEach(c=>{
+    const st = clientStatus(c);
+    const open = pendenciesOf(c.id, 'open');
+    const card = document.createElement('div');
+    card.className='client-card';
+    card.style.setProperty('--c-status', statusColor(st));
+    card.innerHTML = `
+      <div class="client-header">
+        <div>
+          <div class="client-name">${escapeHtml(c.name)}</div>
+          <div class="client-meta">
+            <span class="status-tag ${st}">${st==='active'?'Em dia':st==='attention'?'Pendência':'Atrasado'}</span>
+            <span>desde ${c.startDate?new Date(c.startDate).toLocaleDateString('pt-BR'):'—'}</span>
+          </div>
+        </div>
+        <div class="client-mrr">${fmtBRL(c.mrr)}</div>
+      </div>
+      <div class="services-list">
+        ${(c.services||[]).map(s=>`<div class="service-row"><span>${escapeHtml(s.name)}</span><strong>${fmtBRL(s.price)}</strong></div>`).join('')}
+      </div>
+      <div class="pendencies">
+        <div class="pendencies-title"><span>Pendências</span><span>${open.length} aberta${open.length===1?'':'s'}</span></div>
+        ${open.length===0 && pendenciesOf(c.id).length===0 ? '<div style="font-size:12px;color:var(--text-muted);text-align:center;padding:6px">Sem pendências registradas</div>' : ''}
+        ${pendenciesOf(c.id).slice(-5).reverse().map(p=>{
+          const overdue = p.status==='open' && p.dueDate && p.dueDate<todayISO();
+          return `<div class="pendency-item">
+            <span class="check ${p.status==='done'?'done':''}" data-toggle-pend="${p.id}">${p.status==='done'?'✓':''}</span>
+            <div class="text ${p.status==='done'?'done':''}">${escapeHtml(p.title)}${p.dueDate?`<div class="due ${overdue?'urgent':''}">prazo: ${new Date(p.dueDate).toLocaleDateString('pt-BR')}${overdue?' (atrasada)':''}</div>`:''}</div>
+            <button class="del" data-del-pend="${p.id}">×</button>
+          </div>`;
+        }).join('')}
+        <div class="add-pendency">
+          <input type="text" placeholder="Nova pendência (ex: enviar relatório de outubro)" data-pend-input="${c.id}">
+          <button class="btn btn-sm btn-primary" data-add-pend="${c.id}">+</button>
+        </div>
+      </div>
+      <div class="client-actions">
+        <button class="btn btn-sm" data-edit-client="${c.id}">Editar cliente</button>
+        <button class="btn btn-sm btn-danger" data-churn-client="${c.id}">Marcar como churn</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+
+  // Summary
+  document.getElementById('clientsSummary').textContent =
+    `${activeClients()} clientes ativos · MRR ${fmtBRL(totalMrr())} · Ticket médio ${fmtBRL(avgTicket())}`;
+
+  // Wire events
+  grid.querySelectorAll('[data-toggle-pend]').forEach(el=> el.addEventListener('click',()=>{
+    const p = state.pendencies.find(x=>x.id===el.dataset.togglePend);
+    if(p){ p.status = p.status==='open'?'done':'open'; save(); renderClients(); }
+  }));
+  grid.querySelectorAll('[data-del-pend]').forEach(el=> el.addEventListener('click',()=>{
+    state.pendencies = state.pendencies.filter(p=>p.id!==el.dataset.delPend);
+    save(); renderClients();
+  }));
+  grid.querySelectorAll('[data-add-pend]').forEach(el=> el.addEventListener('click',()=>{
+    const cid = el.dataset.addPend;
+    const inp = grid.querySelector(`[data-pend-input="${cid}"]`);
+    const title = inp.value.trim(); if(!title) return;
+    state.pendencies.push({id:uid(),clientId:cid,title,status:'open',dueDate:'',createdAt:new Date().toISOString()});
+    save(); renderClients();
+  }));
+  grid.querySelectorAll('[data-pend-input]').forEach(inp=> inp.addEventListener('keydown',e=>{
+    if(e.key==='Enter'){ grid.querySelector(`[data-add-pend="${inp.dataset.pendInput}"]`).click(); }
+  }));
+  grid.querySelectorAll('[data-edit-client]').forEach(b=> b.addEventListener('click',()=>editClient(b.dataset.editClient)));
+  grid.querySelectorAll('[data-churn-client]').forEach(b=> b.addEventListener('click',()=>churnClient(b.dataset.churnClient)));
+}
+
+function clientModal(c){
+  const isNew = !c;
+  c = c || {id:uid(),name:'',mrr:0,services:[{name:'Serviço principal',price:0}],startDate:todayISO(),notes:''};
+  const services = c.services||[{name:'',price:0}];
+  openModal(`
+    <h3>${isNew?'Novo cliente':'Editar cliente'}</h3>
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1"><label>Nome do cliente</label><input type="text" id="m-name" value="${escapeHtml(c.name)}"></div>
+      <div class="form-group"><label>Início do contrato</label><input type="date" id="m-start" value="${c.startDate||todayISO()}"></div>
+      <div class="form-group"><label>MRR total (R$)</label><input type="number" id="m-mrr" min="0" step="50" value="${c.mrr||''}"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Notas internas</label><textarea id="m-notes">${escapeHtml(c.notes||'')}</textarea></div>
+    </div>
+    <h4 style="font-size:12px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin:14px 0 8px">Serviços contratados (opcional)</h4>
+    <div id="m-services"></div>
+    <button class="btn btn-sm" id="m-add-service" style="margin-top:8px">+ Adicionar serviço</button>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="m-save">Salvar</button>
+    </div>
+  `);
+  function renderServices(){
+    const wrap = document.getElementById('m-services');
+    wrap.innerHTML = '';
+    services.forEach((s,i)=>{
+      const row = document.createElement('div');
+      row.style.cssText = 'display:grid;grid-template-columns:1fr 130px auto;gap:6px;margin-bottom:6px';
+      row.innerHTML = `
+        <input type="text" placeholder="Nome do serviço" value="${escapeHtml(s.name||'')}" data-svc-name="${i}" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-family:inherit;font-size:13px">
+        <input type="number" placeholder="R$" min="0" step="50" value="${s.price||''}" data-svc-price="${i}" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-family:inherit;font-size:13px;text-align:right">
+        <button class="btn btn-sm btn-danger" data-svc-del="${i}">×</button>
+      `;
+      wrap.appendChild(row);
+    });
+    wrap.querySelectorAll('[data-svc-del]').forEach(b=> b.addEventListener('click',()=>{ services.splice(+b.dataset.svcDel,1); renderServices(); }));
+  }
+  renderServices();
+  document.getElementById('m-add-service').addEventListener('click',()=>{ services.push({name:'',price:0}); renderServices(); });
+  document.getElementById('m-save').addEventListener('click',()=>{
+    const wrap = document.getElementById('m-services');
+    const updated = [];
+    services.forEach((s,i)=>{
+      const n = wrap.querySelector(`[data-svc-name="${i}"]`)?.value.trim() || '';
+      const p = parseFloat(wrap.querySelector(`[data-svc-price="${i}"]`)?.value) || 0;
+      if(n || p>0) updated.push({name:n||'Serviço', price:p});
+    });
+    c.name = document.getElementById('m-name').value.trim();
+    c.startDate = document.getElementById('m-start').value;
+    c.mrr = parseFloat(document.getElementById('m-mrr').value)||0;
+    c.notes = document.getElementById('m-notes').value;
+    c.services = updated.length ? updated : [{name:'Gestão',price:c.mrr}];
+    // Auto-ajusta MRR pela soma dos serviços se MRR ficou em zero
+    const sum = c.services.reduce((s,x)=>s+(+x.price||0),0);
+    if(c.mrr===0 && sum>0) c.mrr = sum;
+    if(!c.name){ toast('Nome obrigatório','error'); return; }
+    if(isNew) state.clients.push(c);
+    save(); renderClients(); renderDashboard();
+    closeModal(); toast(isNew?'Cliente adicionado':'Cliente atualizado');
+  });
+}
+function editClient(id){ clientModal(state.clients.find(c=>c.id===id)); }
+function churnClient(id){
+  const c = state.clients.find(x=>x.id===id); if(!c) return;
+  const reason = prompt(`Motivo do churn de "${c.name}"?\n(ex: preço, troca de fornecedor, fim de projeto, sem retorno do investimento, atendimento)`,'');
+  if(reason===null) return;
+  state.churned.push({id:uid(),name:c.name,mrr:c.mrr,startDate:c.startDate,churnDate:todayISO(),reason});
+  state.clients = state.clients.filter(x=>x.id!==id);
+  save(); renderClients(); renderDashboard();
+  toast(`${c.name} movido para churn`);
+}
+document.getElementById('addClientBtn').addEventListener('click',()=>clientModal());
+
+// ============= PENDENCIES (consolidated view) =============
+function renderPendencies(){
+  const open = state.pendencies.filter(p=>p.status==='open');
+  const done = state.pendencies.filter(p=>p.status==='done').slice(-20);
+  const wrap = document.getElementById('allPendenciesWrap'); wrap.innerHTML='';
+  if(!open.length){
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">✓</div>Nenhuma pendência aberta. Operação em dia.</div>`;
+  } else {
+    // ordenar por urgência: vencidas primeiro, depois com prazo, depois sem prazo
+    open.sort((a,b)=>{
+      const aOver = a.dueDate && a.dueDate<todayISO();
+      const bOver = b.dueDate && b.dueDate<todayISO();
+      if(aOver !== bOver) return bOver-aOver;
+      if(a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
+      if(a.dueDate) return -1;
+      if(b.dueDate) return 1;
+      return 0;
+    });
+    const list = document.createElement('div'); list.className='action-list';
+    open.forEach(p=>{
+      const cli = clientById(p.clientId);
+      const overdue = p.dueDate && p.dueDate<todayISO();
+      const item = document.createElement('div');
+      item.className='action-item';
+      item.innerHTML = `
+        <span class="check" data-toggle="${p.id}"></span>
+        <div>
+          <div class="text" style="font-weight:500">${escapeHtml(p.title)}</div>
+          <div class="meta" style="margin-top:2px">${cli?escapeHtml(cli.name):'(cliente removido)'}${p.dueDate?` · prazo ${new Date(p.dueDate).toLocaleDateString('pt-BR')}${overdue?' <span style="color:var(--danger);font-weight:600">VENCIDA</span>':''}`:''}</div>
+        </div>
+        <div></div>
+        <button class="btn btn-sm" data-set-due="${p.id}">📅 prazo</button>
+        <button class="del" data-del="${p.id}">🗑</button>
+      `;
+      list.appendChild(item);
+    });
+    wrap.appendChild(list);
+  }
+  list && list.querySelectorAll && list.querySelectorAll('[data-toggle]');
+
+  document.querySelectorAll('#allPendenciesWrap [data-toggle]').forEach(el=> el.addEventListener('click',()=>{
+    const p = state.pendencies.find(x=>x.id===el.dataset.toggle);
+    if(p){ p.status='done'; save(); renderPendencies(); }
+  }));
+  document.querySelectorAll('#allPendenciesWrap [data-del]').forEach(el=> el.addEventListener('click',()=>{
+    state.pendencies = state.pendencies.filter(p=>p.id!==el.dataset.del);
+    save(); renderPendencies();
+  }));
+  document.querySelectorAll('#allPendenciesWrap [data-set-due]').forEach(el=> el.addEventListener('click',()=>{
+    const p = state.pendencies.find(x=>x.id===el.dataset.setDue);
+    const newDate = prompt('Definir prazo (YYYY-MM-DD):', p.dueDate||todayISO());
+    if(newDate!==null){ p.dueDate = newDate; save(); renderPendencies(); }
+  }));
+
+  const dwrap = document.getElementById('donePendenciesWrap'); dwrap.innerHTML='';
+  if(!done.length){
+    dwrap.innerHTML = `<div class="empty-state" style="padding:14px">Nenhuma pendência resolvida ainda.</div>`;
+  } else {
+    const list = document.createElement('div'); list.className='action-list';
+    done.reverse().forEach(p=>{
+      const cli = clientById(p.clientId);
+      const item = document.createElement('div');
+      item.className='action-item';
+      item.style.opacity='.6';
+      item.innerHTML = `
+        <span class="check done">✓</span>
+        <div><div class="text done">${escapeHtml(p.title)}</div><div class="meta">${cli?escapeHtml(cli.name):'—'}</div></div>
+        <div></div><div></div>
+        <button class="del" data-reopen="${p.id}">↺</button>
+      `;
+      list.appendChild(item);
+    });
+    dwrap.appendChild(list);
+    dwrap.querySelectorAll('[data-reopen]').forEach(el=> el.addEventListener('click',()=>{
+      const p = state.pendencies.find(x=>x.id===el.dataset.reopen);
+      if(p){ p.status='open'; save(); renderPendencies(); }
+    }));
+  }
+}
+
+// ============= PLAN =============
+function renderPlan(){
+  // Load gap value
+  const gap = state.plan.gapValue || 5000;
+  document.getElementById('gapValue').textContent = '−' + fmtBRL(gap);
+  document.getElementById('gapDescription').textContent = `Reposição mínima de ${fmtBRL(gap)} (3 clientes perdidos) · prazo: 60-90 dias`;
+
+  // Reactivation list
+  renderActionList('reactivationList', 'reactivation', {
+    fields: ['leadName','expectedValue','notes'],
+    placeholder: 'lead pra reativar'
+  });
+  renderActionList('upsellList', 'upsell', {
+    fields: ['offer','expectedValue','clientId','notes'],
+    placeholder: 'oportunidade de upsell'
+  });
+  renderActionList('prospectsList', 'prospects', {
+    fields: ['name','contact','segment','notes'],
+    placeholder: 'prospect ativo'
+  });
+
+  // Inputs
+  ['outbWeekTarget','outbMeetTarget','outbTicketTarget','goalMrr','goalNewClients','goalTicket','goalChurn'].forEach(id=>{
+    const inp = document.getElementById(id);
+    if(inp){
+      inp.value = state.plan[id] || 0;
+      inp.addEventListener('change',()=>{ state.plan[id] = +inp.value||0; save(); updateMrrProgress(); });
+    }
+  });
+  ['funnelTop','funnelMid','funnelBot','positioning','offer','offerPremium'].forEach(key=>{
+    const ta = document.querySelector(`[data-plan-key="${key}"]`);
+    if(ta){
+      ta.value = state.plan[key] || '';
+      ta.addEventListener('change',()=>{ state.plan[key] = ta.value; save(); });
+    }
+  });
+
+  updateMrrProgress();
+}
+function updateMrrProgress(){
+  const goal = +state.plan.goalMrr || 0;
+  const cur = totalMrr();
+  const pct = goal>0 ? Math.min(cur/goal*100, 200) : 0;
+  document.getElementById('mrrVsGoal').textContent = `${fmtBRL(cur)} / ${fmtBRL(goal)} · ${pct.toFixed(0)}%`;
+  document.getElementById('mrrProgressFill').style.width = Math.min(pct,100)+'%';
+}
+
+function renderActionList(domId, stateKey, opts){
+  const wrap = document.getElementById(domId); if(!wrap) return;
+  wrap.innerHTML='';
+  const items = state[stateKey] || [];
+  if(!items.length){
+    wrap.innerHTML = `<div class="empty-state" style="padding:18px">Nenhum ${opts.placeholder} cadastrado. Adicione abaixo.</div>`;
+    return;
+  }
+  items.forEach(it=>{
+    const row = document.createElement('div');
+    row.className='action-item';
+    const main = stateKey==='reactivation' ? it.leadName : stateKey==='upsell' ? `${clientById(it.clientId)?.name||'—'} · ${it.offer||'oferta'}` : it.name;
+    const meta = stateKey==='reactivation' ? (it.notes||'') : stateKey==='upsell' ? (it.notes||'') : `${it.contact||''} ${it.segment?'· '+it.segment:''}`;
+    const value = it.expectedValue ? fmtBRLk(it.expectedValue) : '';
+    row.innerHTML = `
+      <span class="check ${it.status==='done'?'done':''}" data-toggle="${it.id}">${it.status==='done'?'✓':''}</span>
+      <div>
+        <div class="text ${it.status==='done'?'done':''}" style="font-weight:500">${escapeHtml(main||'—')}</div>
+        <div class="meta">${escapeHtml(meta||'—')}</div>
+      </div>
+      <div class="value">${value}</div>
+      <button class="btn btn-sm" data-edit="${it.id}">Editar</button>
+      <button class="del" data-del="${it.id}">🗑</button>
+    `;
+    wrap.appendChild(row);
+  });
+  wrap.querySelectorAll('[data-toggle]').forEach(el=> el.addEventListener('click',()=>{
+    const it = items.find(x=>x.id===el.dataset.toggle);
+    if(it){ it.status = it.status==='done'?'open':'done'; save(); renderActionList(domId,stateKey,opts); }
+  }));
+  wrap.querySelectorAll('[data-del]').forEach(el=> el.addEventListener('click',()=>{
+    state[stateKey] = items.filter(x=>x.id!==el.dataset.del);
+    save(); renderActionList(domId,stateKey,opts);
+  }));
+  wrap.querySelectorAll('[data-edit]').forEach(el=> el.addEventListener('click',()=>{
+    actionItemModal(stateKey, items.find(x=>x.id===el.dataset.edit));
+  }));
+}
+function actionItemModal(stateKey, it){
+  const isNew = !it;
+  it = it || {id:uid(), status:'open'};
+  let fields = '';
+  if(stateKey==='reactivation'){
+    fields = `
+      <div class="form-group" style="grid-column:1/-1"><label>Nome do lead</label><input type="text" id="m-leadName" value="${escapeHtml(it.leadName||'')}"></div>
+      <div class="form-group"><label>Valor esperado (R$/mês)</label><input type="number" id="m-expectedValue" min="0" step="50" value="${it.expectedValue||''}"></div>
+      <div class="form-group"><label>Último contato</label><input type="date" id="m-lastContact" value="${it.lastContact||''}"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Notas / como retomar</label><textarea id="m-notes">${escapeHtml(it.notes||'')}</textarea></div>
+    `;
+  } else if(stateKey==='upsell'){
+    const opts = state.clients.map(c=>`<option value="${c.id}" ${it.clientId===c.id?'selected':''}>${escapeHtml(c.name)}</option>`).join('');
+    fields = `
+      <div class="form-group"><label>Cliente</label><select id="m-clientId">${opts}</select></div>
+      <div class="form-group"><label>Valor adicional (R$/mês)</label><input type="number" id="m-expectedValue" min="0" step="50" value="${it.expectedValue||''}"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Oferta proposta</label><input type="text" id="m-offer" value="${escapeHtml(it.offer||'')}" placeholder="Ex: gestão de tráfego, site institucional, mais 4 reels/mês"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Notas</label><textarea id="m-notes">${escapeHtml(it.notes||'')}</textarea></div>
+    `;
+  } else if(stateKey==='prospects'){
+    fields = `
+      <div class="form-group" style="grid-column:1/-1"><label>Nome</label><input type="text" id="m-name" value="${escapeHtml(it.name||'')}"></div>
+      <div class="form-group"><label>Contato</label><input type="text" id="m-contact" value="${escapeHtml(it.contact||'')}" placeholder="email/telefone/LinkedIn"></div>
+      <div class="form-group"><label>Segmento</label><input type="text" id="m-segment" value="${escapeHtml(it.segment||'')}"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Notas</label><textarea id="m-notes">${escapeHtml(it.notes||'')}</textarea></div>
+    `;
+  }
+  openModal(`
+    <h3>${isNew?'Adicionar':'Editar'} ${stateKey==='reactivation'?'reativação':stateKey==='upsell'?'upsell':'prospect'}</h3>
+    <div class="form-grid">${fields}</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="m-save">Salvar</button>
+    </div>
+  `);
+  document.getElementById('m-save').addEventListener('click',()=>{
+    if(stateKey==='reactivation'){
+      it.leadName = document.getElementById('m-leadName').value.trim();
+      it.expectedValue = parseFloat(document.getElementById('m-expectedValue').value)||0;
+      it.lastContact = document.getElementById('m-lastContact').value;
+    } else if(stateKey==='upsell'){
+      it.clientId = document.getElementById('m-clientId').value;
+      it.offer = document.getElementById('m-offer').value;
+      it.expectedValue = parseFloat(document.getElementById('m-expectedValue').value)||0;
+    } else if(stateKey==='prospects'){
+      it.name = document.getElementById('m-name').value.trim();
+      it.contact = document.getElementById('m-contact').value;
+      it.segment = document.getElementById('m-segment').value;
+    }
+    it.notes = document.getElementById('m-notes')?.value || '';
+    if(isNew) state[stateKey].push(it);
+    save();
+    renderActionList(stateKey==='reactivation'?'reactivationList':stateKey==='upsell'?'upsellList':'prospectsList', stateKey, {placeholder:stateKey});
+    closeModal(); toast('Salvo');
+  });
+}
+document.getElementById('addReactivation').addEventListener('click',()=>actionItemModal('reactivation'));
+document.getElementById('addUpsell').addEventListener('click',()=>actionItemModal('upsell'));
+document.getElementById('addProspect').addEventListener('click',()=>actionItemModal('prospects'));
+
+// Plan tab toggle (short/long)
+document.querySelectorAll('.plan-tab').forEach(b=> b.addEventListener('click',()=>{
+  document.querySelectorAll('.plan-tab').forEach(x=>x.classList.remove('active','short','long'));
+  b.classList.add('active', b.dataset.plan);
+  document.getElementById('plan-short').style.display = b.dataset.plan==='short'?'block':'none';
+  document.getElementById('plan-long').style.display = b.dataset.plan==='long'?'block':'none';
+}));
+
+// ============= PIPELINE (Kanban) =============
+function renderPipeline(){
+  const k = document.getElementById('kanban'); k.innerHTML='';
+  STAGES.forEach(stage=>{
+    const opps = state.opportunities.filter(o=>o.stage===stage.key);
+    const value = opps.reduce((s,o)=>s+(+o.value||0),0);
+    const col = document.createElement('div');
+    col.className='kanban-col';
+    col.innerHTML = `
+      <div class="kanban-col-header"><span style="color:${stage.color}">${stage.label}</span><span class="count">${opps.length}</span></div>
+      <div class="kanban-col-value">${fmtBRL(value)}${stage.key==='won'?' fechado':''}</div>
+      <div class="kanban-col-body" data-stage="${stage.key}"></div>
+    `;
+    k.appendChild(col);
+    const body = col.querySelector('.kanban-col-body');
+    opps.forEach(o=>{
+      const card = document.createElement('div');
+      card.className='kanban-card';
+      card.style.setProperty('--c-stage', stage.color);
+      card.innerHTML = `
+        <div class="name">${escapeHtml(o.name||'(sem nome)')}</div>
+        <div class="meta"><span>${o.probability||0}% · ${o.source||'—'}</span><span class="v">${fmtBRLk(o.value||0)}</span></div>
+      `;
+      card.addEventListener('click',()=>oppModal(o));
+      body.appendChild(card);
+    });
+  });
+
+  const totalPipe = state.opportunities.filter(o=>o.stage!=='won').reduce((s,o)=>s+(+o.value||0),0);
+  const forecast = state.opportunities.filter(o=>o.stage!=='won').reduce((s,o)=>s+((+o.value||0)*((+o.probability||0)/100)),0);
+  document.getElementById('pipelineSummary').innerHTML =
+    `${state.opportunities.filter(o=>o.stage!=='won').length} oportunidades · valor total <strong style="color:var(--text)">${fmtBRL(totalPipe)}</strong> · forecast (ponderado) <strong style="color:var(--success)">${fmtBRL(forecast)}</strong>`;
+}
+function oppModal(o){
+  const isNew = !o;
+  o = o || {id:uid(),name:'',contact:'',value:0,stage:'lead',probability:30,expectedClose:'',source:'outbound',notes:''};
+  const stageOpts = STAGES.concat([{key:'lost',label:'Perdido',color:'#ef4444'}]).map(s=>`<option value="${s.key}" ${o.stage===s.key?'selected':''}>${s.label}</option>`).join('');
+  openModal(`
+    <h3>${isNew?'Nova oportunidade':'Editar oportunidade'}</h3>
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1"><label>Nome / empresa</label><input type="text" id="m-name" value="${escapeHtml(o.name)}"></div>
+      <div class="form-group"><label>Contato</label><input type="text" id="m-contact" value="${escapeHtml(o.contact||'')}"></div>
+      <div class="form-group"><label>Valor (R$/mês)</label><input type="number" id="m-value" min="0" step="100" value="${o.value||''}"></div>
+      <div class="form-group"><label>Estágio</label><select id="m-stage">${stageOpts}</select></div>
+      <div class="form-group"><label>Probabilidade (%)</label><input type="number" id="m-prob" min="0" max="100" step="5" value="${o.probability||0}"></div>
+      <div class="form-group"><label>Origem</label><select id="m-source">
+        <option value="outbound" ${o.source==='outbound'?'selected':''}>Outbound</option>
+        <option value="inbound" ${o.source==='inbound'?'selected':''}>Inbound</option>
+        <option value="indicacao" ${o.source==='indicacao'?'selected':''}>Indicação</option>
+        <option value="reativacao" ${o.source==='reativacao'?'selected':''}>Reativação</option>
+        <option value="upsell" ${o.source==='upsell'?'selected':''}>Upsell</option>
+        <option value="evento" ${o.source==='evento'?'selected':''}>Evento</option>
+      </select></div>
+      <div class="form-group"><label>Fechamento esperado</label><input type="date" id="m-close" value="${o.expectedClose||''}"></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Notas</label><textarea id="m-notes">${escapeHtml(o.notes||'')}</textarea></div>
+    </div>
+    <div class="modal-actions">
+      ${isNew?'':'<button class="btn btn-danger" id="m-delete" style="margin-right:auto">Excluir</button>'}
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="m-save">Salvar</button>
+    </div>
+  `);
+  document.getElementById('m-save').addEventListener('click',()=>{
+    o.name = document.getElementById('m-name').value.trim();
+    o.contact = document.getElementById('m-contact').value;
+    o.value = parseFloat(document.getElementById('m-value').value)||0;
+    o.stage = document.getElementById('m-stage').value;
+    o.probability = parseFloat(document.getElementById('m-prob').value)||0;
+    o.source = document.getElementById('m-source').value;
+    o.expectedClose = document.getElementById('m-close').value;
+    o.notes = document.getElementById('m-notes').value;
+    if(!o.name){ toast('Nome obrigatório','error'); return; }
+    if(isNew) state.opportunities.push(o);
+    if(o.stage==='lost'){ state.opportunities = state.opportunities.filter(x=>x.id!==o.id); }
+    save(); renderPipeline(); closeModal(); toast('Salvo');
+  });
+  if(!isNew){
+    document.getElementById('m-delete').addEventListener('click',()=>{
+      if(confirm('Excluir esta oportunidade?')){
+        state.opportunities = state.opportunities.filter(x=>x.id!==o.id);
+        save(); renderPipeline(); closeModal();
+      }
+    });
+  }
+}
+document.getElementById('addOppBtn').addEventListener('click',()=>oppModal());
+
+// ============= CHURN =============
+function renderChurn(){
+  const wrap = document.getElementById('churnList'); wrap.innerHTML='';
+  if(!state.churned.length){
+    wrap.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">∅</div>Nenhum churn registrado.</div></div>`;
+    return;
+  }
+  const total = state.churned.reduce((s,c)=>s+(+c.mrr||0),0);
+  const card = document.createElement('div'); card.className='card';
+  card.innerHTML = `
+    <h2>${state.churned.length} cliente${state.churned.length===1?'':'s'} perdido${state.churned.length===1?'':'s'} <span class="sub">total ${fmtBRL(total)}/mês</span></h2>
+    <div class="action-list" id="churnInner"></div>
+  `;
+  wrap.appendChild(card);
+  const inner = card.querySelector('#churnInner');
+  state.churned.slice().reverse().forEach(c=>{
+    const item = document.createElement('div');
+    item.className='action-item';
+    item.innerHTML = `
+      <span class="check done">×</span>
+      <div>
+        <div class="text" style="font-weight:600">${escapeHtml(c.name)}</div>
+        <div class="meta">Saiu em ${c.churnDate?new Date(c.churnDate).toLocaleDateString('pt-BR'):'—'}${c.startDate?` · cliente desde ${new Date(c.startDate).toLocaleDateString('pt-BR')}`:''}<br><strong style="color:var(--warning)">Motivo:</strong> ${escapeHtml(c.reason||'não informado')}</div>
+      </div>
+      <div class="value" style="color:var(--danger)">−${fmtBRLk(c.mrr)}</div>
+      <button class="btn btn-sm" data-restore="${c.id}">Reativar</button>
+      <button class="del" data-del-churn="${c.id}">🗑</button>
+    `;
+    inner.appendChild(item);
+  });
+  inner.querySelectorAll('[data-restore]').forEach(b=> b.addEventListener('click',()=>{
+    const c = state.churned.find(x=>x.id===b.dataset.restore);
+    if(!c) return;
+    state.clients.push({id:uid(),name:c.name,mrr:c.mrr,services:[{name:'Gestão',price:c.mrr}],startDate:todayISO(),notes:'Reativado de churn'});
+    state.churned = state.churned.filter(x=>x.id!==c.id);
+    save(); renderChurn(); toast(`${c.name} reativado!`);
+  }));
+  inner.querySelectorAll('[data-del-churn]').forEach(b=> b.addEventListener('click',()=>{
+    if(confirm('Apagar registro de churn?')){
+      state.churned = state.churned.filter(x=>x.id!==b.dataset.delChurn);
+      save(); renderChurn();
+    }
+  }));
+}
+document.getElementById('addChurnBtn').addEventListener('click',()=>{
+  const name = prompt('Nome do cliente que saiu:');
+  if(!name) return;
+  const mrr = parseFloat(prompt('MRR que ele tinha (R$):','1500'))||0;
+  const reason = prompt('Motivo:','');
+  state.churned.push({id:uid(),name,mrr,startDate:'',churnDate:todayISO(),reason});
+  save(); renderChurn();
+});
+
+// ============= EXPORT/IMPORT =============
+function exportCsv(){
+  const lines = ['Cliente;MRR;Início;Status;Pendências abertas;Notas'];
+  state.clients.forEach(c=>{
+    const open = pendenciesOf(c.id, 'open').length;
+    lines.push([c.name, (c.mrr||0).toFixed(2).replace('.',','), c.startDate||'', clientStatus(c), open, (c.notes||'').replace(/;/g,',')].join(';'));
+  });
+  if(state.churned.length){
+    lines.push('');
+    lines.push('CHURN');
+    lines.push('Cliente;MRR;Saiu em;Motivo');
+    state.churned.forEach(c=> lines.push([c.name,(c.mrr||0).toFixed(2).replace('.',','),c.churnDate,(c.reason||'').replace(/;/g,',')].join(';')));
+  }
+  const blob = new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`comercial-${todayISO()}.csv`; a.click();
+  toast('CSV exportado');
+}
+function exportJson(){
+  const blob = new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`comercial-${todayISO()}.json`; a.click();
+  toast('JSON exportado');
+}
+document.getElementById('exportCsv').addEventListener('click',exportCsv);
+document.getElementById('exportJson').addEventListener('click',exportJson);
+document.getElementById('importJson').addEventListener('change',e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{ Object.assign(state, JSON.parse(r.result)); save(); renderDashboard(); renderClients(); toast('Importado'); }
+    catch(err){ toast('Erro: '+err.message,'error'); }
+  };
+  r.readAsText(f);
+});
+document.getElementById('resetData').addEventListener('click',()=>{
+  if(confirm('Apaga TUDO. Confirma?')){
+    localStorage.removeItem(STORAGE_KEY); location.reload();
+  }
+});
+
+// ============= INIT =============
+load();
+updateTopMrr();
+renderDashboard();
+</script>
+</body>
+</html>

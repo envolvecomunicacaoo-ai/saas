@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="sync.js"></script>
+<title>Envolve · Comercial · Leads & Propostas</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<style>
+  :root{
+    --bg:#0a0e1a; --surface:#111827; --surface-2:#1a2233; --border:#252f44;
+    --text:#e8ecf3; --text-dim:#8b95a8; --text-muted:#5c6680;
+    --accent:#7c5cff; --accent-2:#5b8cff; --success:#10b981; --warning:#f59e0b; --danger:#ef4444;
+    --c1:#7c5cff; --c2:#5b8cff; --c3:#10b981; --c4:#f59e0b; --c5:#ef4444; --c6:#ec4899;
+    --c7:#06b6d4; --c8:#8b5cf6; --c9:#84cc16; --c10:#f97316; --c11:#14b8a6; --c12:#a855f7;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",sans-serif;
+    background:var(--bg); color:var(--text); font-size:14px; line-height:1.5;
+    background-image:radial-gradient(circle at 20% 0%,rgba(124,92,255,.08),transparent 50%),
+                     radial-gradient(circle at 80% 100%,rgba(91,140,255,.06),transparent 50%);
+    background-attachment:fixed;
+  }
+  .app{max-width:1400px;margin:0 auto;padding:24px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:white}
+  .brand h1{font-size:18px;font-weight:600;letter-spacing:-.01em}
+  .brand p{font-size:12px;color:var(--text-dim);margin-top:2px}
+  .header-actions{display:flex;gap:8px;align-items:center}
+  .badge{font-size:11px;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim)}
+  .badge.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:6px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  nav.tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--surface);padding:4px;border-radius:12px;border:1px solid var(--border);width:fit-content}
+  .tab{padding:8px 18px;border-radius:8px;cursor:pointer;color:var(--text-dim);font-weight:500;font-size:13px;border:none;background:transparent;transition:all .15s}
+  .tab:hover{color:var(--text)}
+  .tab.active{background:var(--surface-2);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+
+  .panel{display:none;animation:fadeIn .2s ease}
+  .panel.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px}
+  .card h2{font-size:14px;font-weight:600;margin-bottom:14px;letter-spacing:-.01em;display:flex;align-items:center;justify-content:space-between}
+  .card h2 .sub{font-size:11px;color:var(--text-muted);font-weight:400;text-transform:uppercase;letter-spacing:.05em}
+
+  /* ===== Form ===== */
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+  .form-group{display:flex;flex-direction:column;gap:6px}
+  .form-group label{font-size:11px;color:var(--text-dim);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+  .form-group input{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;font-family:inherit;transition:all .15s}
+  .form-group input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(124,92,255,.15)}
+  .form-group input[type=number]:hover{border-color:#3a4660}
+  .form-group .channel-color{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:middle}
+
+  .form-actions{display:flex;gap:10px;margin-top:20px;padding-top:20px;border-top:1px solid var(--border);align-items:center}
+  .btn{padding:10px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);cursor:pointer;font-weight:500;font-size:13px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:#222e44;border-color:#3a4660}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));border-color:transparent;color:white}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-danger{background:transparent;color:var(--danger);border-color:rgba(239,68,68,.3)}
+  .btn-danger:hover{background:rgba(239,68,68,.1)}
+  .btn-ghost{background:transparent}
+
+  .form-hint{font-size:12px;color:var(--text-dim);margin-left:auto}
+
+  /* ===== KPIs ===== */
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--c-accent,var(--accent))}
+  .kpi-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+  .kpi-value{font-size:28px;font-weight:700;letter-spacing:-.02em}
+  .kpi-trend{font-size:12px;margin-top:6px;display:flex;align-items:center;gap:4px}
+  .kpi-trend.up{color:var(--success)}
+  .kpi-trend.down{color:var(--danger)}
+  .kpi-trend.neutral{color:var(--text-muted)}
+
+  /* ===== Charts ===== */
+  .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px;margin-bottom:14px}
+  .chart-wrap{position:relative;height:280px}
+  .chart-wrap.tall{height:340px}
+
+  /* ===== Table ===== */
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:1100px}
+  thead{background:var(--surface-2);position:sticky;top:0;z-index:1}
+  th{padding:11px 10px;text-align:right;font-weight:600;color:var(--text-dim);font-size:11px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);white-space:nowrap}
+  th:first-child,td:first-child{text-align:left;padding-left:14px}
+  td{padding:10px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+  tbody tr:hover{background:rgba(255,255,255,.02)}
+  tbody tr:last-child td{border-bottom:none}
+  td.weekend{color:var(--text-muted);font-style:italic}
+  td.editable{cursor:text;border-radius:4px;transition:background .12s}
+  td.editable:hover{background:rgba(124,92,255,.08)}
+  td.editable:focus{outline:1px solid var(--accent);background:rgba(124,92,255,.1)}
+  td.has-value{color:var(--text);font-weight:500}
+  td.zero{color:var(--text-muted)}
+  .month-divider{background:var(--surface-2)!important;font-weight:600;color:var(--accent)!important;font-size:12px}
+
+  /* ===== Filters ===== */
+  .filters{display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+  .filters select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer}
+
+  /* ===== Toast ===== */
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);padding:12px 18px;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.3);display:flex;gap:8px;align-items:center;font-size:13px;font-weight:500;transform:translateY(120%);transition:transform .25s ease;z-index:100}
+  .toast.show{transform:translateY(0)}
+  .toast.success{border-color:var(--success)}
+  .toast.success::before{content:"✓";color:var(--success);font-weight:700}
+  .toast.error{border-color:var(--danger)}
+  .toast.error::before{content:"!";color:var(--danger);font-weight:700;background:rgba(239,68,68,.15);width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+
+  /* ===== Channel chips ===== */
+  .channel-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+  .channel-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface-2);border-radius:8px;border:1px solid var(--border)}
+  .channel-row .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+  .channel-row .name{flex:1;font-size:13px}
+  .channel-row .count{font-weight:600;font-size:14px;color:var(--text)}
+  .channel-row .pct{font-size:11px;color:var(--text-dim);margin-left:6px}
+
+  /* ===== File input ===== */
+  .file-input-wrap{position:relative;display:inline-flex}
+  .file-input-wrap input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+  .empty-state{text-align:center;padding:40px;color:var(--text-dim)}
+  .empty-state .icon{font-size:32px;margin-bottom:8px}
+
+  @media(max-width:768px){
+    .app{padding:14px}
+    nav.tabs{overflow-x:auto;width:100%}
+    .kpi-value{font-size:22px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">L</div>
+      <div>
+        <h1>Comercial · Leads & Propostas</h1>
+        <p>Captação diária de leads, canais de aquisição e investimento</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="./" style="font-size:12px;padding:6px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.color='var(--text)';this.style.borderColor='#3a4660'" onmouseout="this.style.color='var(--text-dim)';this.style.borderColor='var(--border)'">← Envolve</a>
+      <span class="badge live" id="syncBadge">Sincronizado</span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-panel="entry">Lançamento Diário</button>
+    <button class="tab" data-panel="dashboard">Dashboard</button>
+    <button class="tab" data-panel="history">Histórico</button>
+    <button class="tab" data-panel="data">Dados</button>
+  </nav>
+
+  <!-- ============ ENTRY ============ -->
+  <section class="panel active" id="panel-entry">
+    <div class="card" style="margin-bottom:14px">
+      <h2>Lançamento do dia <span class="sub" id="entryDateLabel"></span></h2>
+      <div class="form-grid" id="entryForm"></div>
+      <div class="form-actions">
+        <button class="btn btn-primary" id="saveEntry">Salvar lançamento</button>
+        <button class="btn btn-ghost" id="clearEntry">Limpar</button>
+        <span class="form-hint" id="entryHint">Selecione uma data acima para editar outro dia.</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Últimos 14 dias <span class="sub">visão rápida</span></h2>
+      <div class="table-wrap">
+        <table id="recentTable">
+          <thead><tr><th>Data</th><th>Leads</th><th>Investido</th><th>CPL</th><th>Top canal</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section class="panel" id="panel-dashboard">
+    <div class="filters">
+      <label style="font-size:12px;color:var(--text-dim)">Período:</label>
+      <select id="dashPeriod">
+        <option value="month">Mês atual</option>
+        <option value="last30">Últimos 30 dias</option>
+        <option value="ytd">Ano até hoje</option>
+        <option value="all">Tudo</option>
+      </select>
+    </div>
+
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="chart-grid">
+      <div class="card">
+        <h2>Leads por dia <span class="sub">evolução diária</span></h2>
+        <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Mix de canais <span class="sub">distribuição de leads</span></h2>
+        <div class="chart-wrap"><canvas id="chartMix"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="card">
+        <h2>Leads por canal <span class="sub">ranking absoluto</span></h2>
+        <div class="chart-wrap tall"><canvas id="chartChannels"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Investimento × Leads <span class="sub">eficiência por dia</span></h2>
+        <div class="chart-wrap tall"><canvas id="chartInvestVsLeads"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <h2>Detalhamento por canal <span class="sub">no período</span></h2>
+      <div class="channel-list" id="channelList"></div>
+    </div>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section class="panel" id="panel-history">
+    <div class="filters">
+      <label style="font-size:12px;color:var(--text-dim)">Mês:</label>
+      <select id="histMonth"></select>
+      <label style="font-size:12px;color:var(--text-dim);margin-left:8px">Ano:</label>
+      <select id="histYear"></select>
+      <span style="margin-left:auto;font-size:12px;color:var(--text-dim)" id="histSummary"></span>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap" style="border:none;border-radius:0;max-height:600px">
+        <table id="histTable">
+          <thead><tr id="histHead"></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text-dim);margin-top:10px">Dica: clique numa célula numérica pra editar direto na tabela. Salva automaticamente.</p>
+  </section>
+
+  <!-- ============ DATA ============ -->
+  <section class="panel" id="panel-data">
+    <div class="card" style="margin-bottom:14px">
+      <h2>Exportar</h2>
+      <p style="color:var(--text-dim);margin-bottom:14px">Baixe os dados no mesmo formato da planilha original (compatível com Excel/Sheets) ou em JSON pra backup completo.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="exportCsv">Exportar CSV (formato planilha original)</button>
+        <button class="btn" id="exportJson">Exportar JSON (backup)</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h2>Importar</h2>
+      <p style="color:var(--text-dim);margin-bottom:14px">Importar um CSV no formato da planilha original ou um JSON de backup. <strong>Atenção:</strong> sobrescreve os dados existentes.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <span class="file-input-wrap">
+          <button class="btn">Importar CSV</button>
+          <input type="file" id="importCsv" accept=".csv">
+        </span>
+        <span class="file-input-wrap">
+          <button class="btn">Importar JSON</button>
+          <input type="file" id="importJson" accept=".json">
+        </span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Zona de risco</h2>
+      <p style="color:var(--text-dim);margin-bottom:14px">Apaga todos os dados salvos no navegador. Faça backup antes.</p>
+      <button class="btn btn-danger" id="resetData">Apagar todos os dados</button>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =============== CONFIG ===============
+const CHANNELS = [
+  {key:'outbound',           label:'Outbound',                   color:'#7c5cff'},
+  {key:'trafego_direto',     label:'Tráfego Direto',             color:'#5b8cff'},
+  {key:'webinario',          label:'Webinário',                  color:'#10b981'},
+  {key:'social_seller',      label:'Social Seller',              color:'#f59e0b'},
+  {key:'inbound_marketing',  label:'Inbound Marketing',          color:'#ef4444'},
+  {key:'indicacao',          label:'Indicação',                  color:'#ec4899'},
+  {key:'reengajamento',      label:'Reengajamento',              color:'#06b6d4'},
+  {key:'trafego_form_nativo',label:'Tráfego · Form. Nativo',     color:'#8b5cf6'},
+  {key:'trafego_form_externo',label:'Tráfego · Form. Externo',   color:'#84cc16'},
+  {key:'trafego_isca_digital',label:'Tráfego · Isca Digital',    color:'#f97316'},
+  {key:'trafego_front_end',  label:'Tráfego · Front End',        color:'#14b8a6'},
+  {key:'evento_presencial',  label:'Evento Presencial',          color:'#a855f7'},
+];
+const EXTRA_FIELDS = [
+  {key:'valor_investido',  label:'Valor Investido (R$)',  color:'#fbbf24', isMoney:true},
+  {key:'novos_seguidores', label:'Novos Seguidores',      color:'#94a3b8'},
+];
+const ALL_FIELDS = [...CHANNELS, ...EXTRA_FIELDS];
+const STORAGE_KEY = 'envolve.leads-propostas.v1';
+const MONTHS_PT = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+
+// =============== STATE ===============
+let data = {}; // {YYYY-MM-DD: {outbound:0, ...}}
+let charts = {};
+
+// =============== SEED DATA (do CSV original) ===============
+const SEED = [];
+
+// =============== STORAGE ===============
+function load(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try{ data = JSON.parse(raw); return; }catch(e){}
+  }
+  // first run: load seed
+  data = {};
+  SEED.forEach(r=>{
+    const o = {};
+    ALL_FIELDS.forEach(f=> o[f.key] = r[f.key] || 0);
+    data[r.data] = o;
+  });
+  save();
+}
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  document.getElementById('syncBadge').textContent = 'Salvo · ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+// =============== HELPERS ===============
+const fmtBRL = v => 'R$ ' + (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtNum = v => (v||0).toLocaleString('pt-BR');
+const todayISO = () => { const d=new Date(); return d.toISOString().slice(0,10); };
+function parseISO(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function brDate(iso){ const d=parseISO(iso); return d.toLocaleDateString('pt-BR'); }
+function dayLabel(iso){ const d=parseISO(iso); return d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}); }
+function isWeekend(iso){ const d=parseISO(iso); return d.getDay()===0||d.getDay()===6; }
+function getRecord(iso){
+  if(!data[iso]){
+    data[iso] = {};
+    ALL_FIELDS.forEach(f=>data[iso][f.key]=0);
+  }
+  return data[iso];
+}
+function totalLeads(rec){
+  return CHANNELS.reduce((s,c)=>s+(+rec[c.key]||0),0);
+}
+function topChannel(rec){
+  let best={key:null,count:0,label:'—',color:'#666'};
+  CHANNELS.forEach(c=>{ if((+rec[c.key]||0)>best.count) best={key:c.key,count:+rec[c.key],label:c.label,color:c.color}; });
+  return best;
+}
+function toast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+// =============== TABS ===============
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+    if(btn.dataset.panel==='dashboard') renderDashboard();
+    if(btn.dataset.panel==='history') renderHistory();
+    if(btn.dataset.panel==='entry') renderRecent();
+  });
+});
+
+// =============== ENTRY FORM ===============
+function buildEntryForm(){
+  const wrap = document.getElementById('entryForm');
+  wrap.innerHTML = '';
+  // date picker first
+  const dg = document.createElement('div');
+  dg.className='form-group';
+  dg.style.gridColumn='1 / -1';
+  dg.style.maxWidth='280px';
+  dg.innerHTML = `<label>Data do lançamento</label>
+    <input type="date" id="entryDate" value="${todayISO()}">`;
+  wrap.appendChild(dg);
+
+  ALL_FIELDS.forEach(f=>{
+    const g = document.createElement('div');
+    g.className = 'form-group';
+    const isMoney = f.isMoney;
+    g.innerHTML = `
+      <label><span class="channel-color" style="background:${f.color}"></span>${f.label}</label>
+      <input type="number" min="0" step="${isMoney?'0.01':'1'}" data-field="${f.key}" placeholder="0">
+    `;
+    wrap.appendChild(g);
+  });
+
+  document.getElementById('entryDate').addEventListener('change', loadEntryFor);
+  loadEntryFor();
+}
+function loadEntryFor(){
+  const iso = document.getElementById('entryDate').value;
+  document.getElementById('entryDateLabel').textContent = '· ' + brDate(iso);
+  const rec = data[iso] || {};
+  ALL_FIELDS.forEach(f=>{
+    const inp = document.querySelector(`#entryForm input[data-field="${f.key}"]`);
+    inp.value = rec[f.key] || '';
+  });
+}
+document.getElementById('saveEntry').addEventListener('click',()=>{
+  const iso = document.getElementById('entryDate').value;
+  const rec = getRecord(iso);
+  ALL_FIELDS.forEach(f=>{
+    const inp = document.querySelector(`#entryForm input[data-field="${f.key}"]`);
+    rec[f.key] = +inp.value || 0;
+  });
+  save();
+  renderRecent();
+  toast('Lançamento salvo · ' + brDate(iso));
+});
+document.getElementById('clearEntry').addEventListener('click',()=>{
+  document.querySelectorAll('#entryForm input[type=number]').forEach(i=>i.value='');
+});
+
+// =============== RECENT 14d ===============
+function renderRecent(){
+  const tbody = document.querySelector('#recentTable tbody');
+  tbody.innerHTML = '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = [];
+  for(let i=0;i<14;i++){
+    const d = new Date(today); d.setDate(d.getDate()-i);
+    days.push(d.toISOString().slice(0,10));
+  }
+  days.forEach(iso=>{
+    const rec = data[iso] || {};
+    const leads = totalLeads(rec);
+    const inv = +rec.valor_investido || 0;
+    const cpl = leads>0 ? inv/leads : 0;
+    const top = topChannel(rec);
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="${isWeekend(iso)?'weekend':''}">${dayLabel(iso)}</td>
+      <td class="${leads?'has-value':'zero'}">${fmtNum(leads)}</td>
+      <td class="${inv?'has-value':'zero'}">${inv?fmtBRL(inv):'—'}</td>
+      <td class="${cpl?'has-value':'zero'}">${cpl?fmtBRL(cpl):'—'}</td>
+      <td class="${top.count?'has-value':'zero'}">${top.count?`<span class="channel-color" style="background:${top.color}"></span>${top.label} (${top.count})`:'—'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// =============== DASHBOARD ===============
+function getPeriodDates(){
+  const period = document.getElementById('dashPeriod').value;
+  const today = new Date(); today.setHours(0,0,0,0);
+  let from, to=today;
+  if(period==='month'){
+    from = new Date(today.getFullYear(),today.getMonth(),1);
+  } else if(period==='last30'){
+    from = new Date(today); from.setDate(from.getDate()-29);
+  } else if(period==='ytd'){
+    from = new Date(today.getFullYear(),0,1);
+  } else {
+    // all
+    const keys = Object.keys(data).sort();
+    if(!keys.length) return {from:today,to:today,dates:[]};
+    from = parseISO(keys[0]);
+    to = parseISO(keys[keys.length-1]);
+  }
+  const dates = [];
+  for(let d=new Date(from); d<=to; d.setDate(d.getDate()+1)){
+    dates.push(d.toISOString().slice(0,10));
+  }
+  return {from, to, dates};
+}
+function renderDashboard(){
+  const {dates} = getPeriodDates();
+  const recs = dates.map(iso=> ({iso, rec:data[iso]||{}}));
+  const totalLeadsAll = recs.reduce((s,r)=>s+totalLeads(r.rec),0);
+  const totalInv = recs.reduce((s,r)=>s+(+r.rec.valor_investido||0),0);
+  const totalSeg = recs.reduce((s,r)=>s+(+r.rec.novos_seguidores||0),0);
+  const cpl = totalLeadsAll>0 ? totalInv/totalLeadsAll : 0;
+  const daysWithLeads = recs.filter(r=>totalLeads(r.rec)>0).length;
+  const avgLeadsDay = daysWithLeads>0 ? totalLeadsAll/daysWithLeads : 0;
+
+  // KPIs
+  const kg = document.getElementById('kpiGrid');
+  kg.innerHTML = '';
+  const kpis = [
+    {label:'Leads no período', value:fmtNum(totalLeadsAll), color:'var(--accent)', sub:`${daysWithLeads} dias com lançamento`},
+    {label:'Investimento total', value:fmtBRL(totalInv), color:'var(--c4)', sub:totalInv>0?`${dates.length} dias monitorados`:'sem investimento'},
+    {label:'CPL médio', value:cpl>0?fmtBRL(cpl):'—', color:'var(--success)', sub:cpl>0?'custo por lead':'requer leads + investimento'},
+    {label:'Média de leads/dia', value:avgLeadsDay.toFixed(1), color:'var(--c2)', sub:'apenas dias com lançamento'},
+    {label:'Novos seguidores', value:fmtNum(totalSeg), color:'var(--c6)', sub:'orgânico no período'},
+  ];
+  kpis.forEach(k=>{
+    const el = document.createElement('div');
+    el.className='kpi';
+    el.style.setProperty('--c-accent', k.color);
+    el.innerHTML = `<div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div><div class="kpi-trend neutral">${k.sub}</div>`;
+    kg.appendChild(el);
+  });
+
+  // ===== Chart 1: Leads por dia =====
+  const dailyLabels = dates.map(d=>{const dt=parseISO(d);return dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})});
+  const dailyLeads = recs.map(r=>totalLeads(r.rec));
+  const dailyInv = recs.map(r=>+r.rec.valor_investido||0);
+  drawChart('chartDaily', {
+    type:'line',
+    data:{
+      labels:dailyLabels,
+      datasets:[
+        {label:'Leads',data:dailyLeads,borderColor:'#7c5cff',backgroundColor:'rgba(124,92,255,.15)',tension:.3,fill:true,yAxisID:'y'},
+        {label:'Investido (R$)',data:dailyInv,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,.05)',tension:.3,yAxisID:'y1',borderDash:[4,4]},
+      ],
+    },
+    options:chartOpts({dual:true})
+  });
+
+  // ===== Chart 2: Mix de canais (donut) =====
+  const channelTotals = CHANNELS.map(c=>({...c, total:recs.reduce((s,r)=>s+(+r.rec[c.key]||0),0)})).filter(c=>c.total>0);
+  if(channelTotals.length===0){
+    drawEmpty('chartMix','Sem dados no período');
+  } else {
+    drawChart('chartMix', {
+      type:'doughnut',
+      data:{
+        labels: channelTotals.map(c=>c.label),
+        datasets:[{
+          data: channelTotals.map(c=>c.total),
+          backgroundColor: channelTotals.map(c=>c.color),
+          borderColor:'#0a0e1a', borderWidth:2,
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{position:'right',labels:{color:'#e8ecf3',font:{size:11},boxWidth:10}}}
+      }
+    });
+  }
+
+  // ===== Chart 3: Leads por canal (horizontal bars) =====
+  const allChannelTotals = CHANNELS.map(c=>({...c, total:recs.reduce((s,r)=>s+(+r.rec[c.key]||0),0)})).sort((a,b)=>b.total-a.total);
+  drawChart('chartChannels', {
+    type:'bar',
+    data:{
+      labels: allChannelTotals.map(c=>c.label),
+      datasets:[{data:allChannelTotals.map(c=>c.total),backgroundColor:allChannelTotals.map(c=>c.color),borderRadius:6}]
+    },
+    options:{...chartOpts(),indexAxis:'y',plugins:{legend:{display:false}}}
+  });
+
+  // ===== Chart 4: Investimento vs Leads (scatter) =====
+  const scatterPoints = recs.filter(r=> (+r.rec.valor_investido||0)>0 || totalLeads(r.rec)>0)
+    .map(r=>({x:+r.rec.valor_investido||0, y:totalLeads(r.rec)}));
+  drawChart('chartInvestVsLeads',{
+    type:'scatter',
+    data:{datasets:[{label:'Dia',data:scatterPoints,backgroundColor:'rgba(124,92,255,.6)',borderColor:'#7c5cff',pointRadius:5}]},
+    options:{
+      ...chartOpts(),
+      scales:{
+        x:{title:{display:true,text:'Investido (R$)',color:'#8b95a8'},grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8b95a8'}},
+        y:{title:{display:true,text:'Leads do dia',color:'#8b95a8'},grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8b95a8'}}
+      },
+      plugins:{legend:{display:false}}
+    }
+  });
+
+  // ===== Channel list =====
+  const list = document.getElementById('channelList');
+  list.innerHTML = '';
+  allChannelTotals.forEach(c=>{
+    const pct = totalLeadsAll>0 ? (c.total/totalLeadsAll*100).toFixed(1) : '0.0';
+    const row = document.createElement('div');
+    row.className='channel-row';
+    row.innerHTML = `<span class="dot" style="background:${c.color}"></span>
+      <span class="name">${c.label}</span>
+      <span class="count">${fmtNum(c.total)}</span>
+      <span class="pct">${pct}%</span>`;
+    list.appendChild(row);
+  });
+}
+function chartOpts(opts={}){
+  const base = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{labels:{color:'#e8ecf3',font:{size:11}}},
+      tooltip:{backgroundColor:'#111827',borderColor:'#252f44',borderWidth:1,padding:10,titleColor:'#e8ecf3',bodyColor:'#e8ecf3'}
+    },
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8b95a8',font:{size:11}}},
+      y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8b95a8',font:{size:11}}}
+    }
+  };
+  if(opts.dual){
+    base.scales.y1 = {position:'right',grid:{drawOnChartArea:false},ticks:{color:'#8b95a8',font:{size:11},callback:v=>'R$'+v}};
+  }
+  return base;
+}
+function drawChart(id, config){
+  if(charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  charts[id] = new Chart(ctx, config);
+}
+function drawEmpty(id, msg){
+  if(charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  const p = ctx.parentElement;
+  p.innerHTML = `<div class="empty-state"><div class="icon">📊</div>${msg}</div>`;
+}
+document.getElementById('dashPeriod').addEventListener('change', renderDashboard);
+
+// =============== HISTORY (full editable table) ===============
+function renderHistory(){
+  // populate filters
+  const monthSel = document.getElementById('histMonth');
+  const yearSel = document.getElementById('histYear');
+  if(!monthSel.options.length){
+    monthSel.innerHTML = '<option value="all">Todos</option>' + MONTHS_PT.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+    const years = [...new Set(Object.keys(data).map(d=>d.slice(0,4)))].sort();
+    yearSel.innerHTML = years.map(y=>`<option value="${y}">${y}</option>`).join('');
+    const today = new Date();
+    monthSel.value = today.getMonth();
+    yearSel.value = today.getFullYear();
+    monthSel.addEventListener('change', renderHistoryTable);
+    yearSel.addEventListener('change', renderHistoryTable);
+  }
+  renderHistoryTable();
+}
+function renderHistoryTable(){
+  const month = document.getElementById('histMonth').value;
+  const year = document.getElementById('histYear').value;
+  const head = document.getElementById('histHead');
+  head.innerHTML = '<th>Data</th>' +
+    CHANNELS.map(c=>`<th title="${c.label}"><span class="channel-color" style="background:${c.color}"></span>${c.label.length>14?c.label.slice(0,14)+'…':c.label}</th>`).join('') +
+    '<th>Investido</th><th>Seguidores</th><th>Leads</th>';
+
+  const tbody = document.querySelector('#histTable tbody');
+  tbody.innerHTML = '';
+
+  const keys = Object.keys(data).filter(iso=>{
+    if(year && iso.slice(0,4)!==year) return false;
+    if(month!=='all' && +iso.slice(5,7)-1 !== +month) return false;
+    return true;
+  }).sort();
+
+  if(!keys.length){
+    tbody.innerHTML = `<tr><td colspan="${CHANNELS.length+4}" style="text-align:center;padding:30px;color:var(--text-dim)">Sem registros nesse período.</td></tr>`;
+    document.getElementById('histSummary').textContent = '';
+    return;
+  }
+
+  let totalLeadsP=0,totalInvP=0,totalSegP=0;
+  keys.forEach(iso=>{
+    const rec = data[iso];
+    const tr = document.createElement('tr');
+    let html = `<td class="${isWeekend(iso)?'weekend':''}">${dayLabel(iso)}</td>`;
+    CHANNELS.forEach(c=>{
+      const v = +rec[c.key]||0;
+      html += `<td class="editable ${v?'has-value':'zero'}" contenteditable="true" data-iso="${iso}" data-field="${c.key}">${v||''}</td>`;
+    });
+    const inv = +rec.valor_investido||0;
+    const seg = +rec.novos_seguidores||0;
+    const leads = totalLeads(rec);
+    totalLeadsP += leads; totalInvP += inv; totalSegP += seg;
+    html += `<td class="editable ${inv?'has-value':'zero'}" contenteditable="true" data-iso="${iso}" data-field="valor_investido" data-money="1">${inv?inv.toFixed(2).replace('.',','):''}</td>`;
+    html += `<td class="editable ${seg?'has-value':'zero'}" contenteditable="true" data-iso="${iso}" data-field="novos_seguidores">${seg||''}</td>`;
+    html += `<td class="${leads?'has-value':'zero'}" style="font-weight:600">${leads||''}</td>`;
+    tr.innerHTML = html;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById('histSummary').textContent =
+    `${keys.length} dias · ${fmtNum(totalLeadsP)} leads · ${fmtBRL(totalInvP)} investido · ${fmtNum(totalSegP)} seguidores`;
+
+  // wire up edits
+  tbody.querySelectorAll('td.editable').forEach(td=>{
+    td.addEventListener('blur',()=>{
+      const iso = td.dataset.iso, field = td.dataset.field;
+      let v = td.textContent.trim().replace(',','.');
+      v = parseFloat(v) || 0;
+      const rec = getRecord(iso);
+      rec[field] = v;
+      save();
+      renderHistoryTable();
+    });
+    td.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){ e.preventDefault(); td.blur(); }
+    });
+  });
+}
+
+// =============== DATA: EXPORT/IMPORT ===============
+function exportCsv(){
+  // Match original Hawkins format
+  const header = 'Data;Outbound;Tráfego Direto;Webinário;Social Seller;Inbound Marketing;Indicação;Reengajamento;Tráfego - Form. Nativo;Tráfego - Form. Externo;Tráfego - Isca Digital;Tráfego - Front End;Evento Presencial;Valor Investido;Leads;Novos Seguidores;Mês;Ano';
+  const lines = [header];
+  const keys = Object.keys(data).sort();
+  keys.forEach(iso=>{
+    const r = data[iso];
+    const [y,m,d] = iso.split('-').map(Number);
+    const dateStr = `${m}/${d}/${y}`;
+    const leads = totalLeads(r);
+    const row = [
+      dateStr,
+      r.outbound||0, r.trafego_direto||0, r.webinario||0, r.social_seller||0,
+      r.inbound_marketing||0, r.indicacao||0, r.reengajamento||0,
+      r.trafego_form_nativo||0, r.trafego_form_externo||0, r.trafego_isca_digital||0,
+      r.trafego_front_end||0, r.evento_presencial||0,
+      'R$ '+(+r.valor_investido||0).toFixed(2).replace('.',','),
+      leads,
+      r.novos_seguidores||0,
+      MONTHS_PT[m-1],
+      y
+    ];
+    lines.push(row.join(';'));
+  });
+  const blob = new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  download(blob, `hawkins-marketing-${todayISO()}.csv`);
+  toast('CSV exportado');
+}
+function exportJson(){
+  const blob = new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  download(blob, `hawkins-marketing-${todayISO()}.json`);
+  toast('JSON exportado');
+}
+function download(blob, name){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),100);
+}
+document.getElementById('exportCsv').addEventListener('click', exportCsv);
+document.getElementById('exportJson').addEventListener('click', exportJson);
+
+document.getElementById('importJson').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const parsed = JSON.parse(r.result);
+      if(typeof parsed!=='object') throw new Error('formato inválido');
+      data = parsed; save();
+      toast('JSON importado · ' + Object.keys(data).length + ' dias');
+      buildEntryForm(); renderRecent();
+    }catch(err){ toast('Erro: '+err.message,'error'); }
+  };
+  r.readAsText(file);
+});
+
+document.getElementById('importCsv').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const text = r.result;
+      const lines = text.split(/\r?\n/);
+      let imported = 0;
+      const newData = {};
+      lines.forEach(line=>{
+        const cells = line.split(';');
+        // try column index either 0 (raw header export) or 3 (original Hawkins row)
+        for(const offset of [0,3]){
+          const dateCell = (cells[offset]||'').trim();
+          if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateCell)){
+            const [m,d,y] = dateCell.split('/');
+            const iso = `${y}-${String(+m).padStart(2,'0')}-${String(+d).padStart(2,'0')}`;
+            const num = x=>{ x=(x||'').toString().trim().replace('R$','').trim().replace(/\./g,'').replace(',','.'); const n=parseFloat(x); return isNaN(n)?0:n; };
+            newData[iso] = {
+              outbound:num(cells[offset+1]), trafego_direto:num(cells[offset+2]), webinario:num(cells[offset+3]),
+              social_seller:num(cells[offset+4]), inbound_marketing:num(cells[offset+5]), indicacao:num(cells[offset+6]),
+              reengajamento:num(cells[offset+7]), trafego_form_nativo:num(cells[offset+8]),
+              trafego_form_externo:num(cells[offset+9]), trafego_isca_digital:num(cells[offset+10]),
+              trafego_front_end:num(cells[offset+11]), evento_presencial:num(cells[offset+12]),
+              valor_investido:num(cells[offset+13]), novos_seguidores:num(cells[offset+15]),
+            };
+            imported++;
+            break;
+          }
+        }
+      });
+      if(imported===0){ toast('Nenhuma linha válida encontrada','error'); return; }
+      data = newData; save();
+      toast(`${imported} dias importados`);
+      buildEntryForm(); renderRecent();
+    }catch(err){ toast('Erro: '+err.message,'error'); }
+  };
+  r.readAsText(file,'UTF-8');
+});
+
+document.getElementById('resetData').addEventListener('click',()=>{
+  if(confirm('Tem certeza? Isso apaga TODOS os dados salvos no navegador. Faça backup antes.')){
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+});
+
+// =============== INIT ===============
+load();
+buildEntryForm();
+renderRecent();
+</script>
+</body>
+</html>

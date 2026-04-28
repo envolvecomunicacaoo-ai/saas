@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="sync.js"></script>
+<title>Envolve · Insights & IA</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --surface:#111827; --surface-2:#1a2233; --border:#252f44;
+    --text:#e8ecf3; --text-dim:#8b95a8; --text-muted:#5c6680;
+    --accent:#a855f7; --accent-2:#7c5cff; --accent-3:#ec4899;
+    --success:#10b981; --warning:#f59e0b; --danger:#ef4444; --info:#06b6d4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",sans-serif;
+    background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;
+    background-image:
+      radial-gradient(circle at 0% 0%,rgba(168,85,247,.10),transparent 50%),
+      radial-gradient(circle at 100% 100%,rgba(124,92,255,.08),transparent 50%);
+    background-attachment:fixed;
+  }
+  .app{max-width:1400px;margin:0 auto;padding:24px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:14px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-3));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:white;box-shadow:0 6px 20px rgba(168,85,247,.4)}
+  .brand h1{font-size:18px;font-weight:600;letter-spacing:-.01em}
+  .brand p{font-size:12px;color:var(--text-dim);margin-top:2px}
+  .header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .badge{font-size:11px;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim)}
+  .badge.ok{border-color:rgba(16,185,129,.4);color:var(--success)}
+  .badge.warn{border-color:rgba(245,158,11,.4);color:var(--warning)}
+
+  nav.tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--surface);padding:4px;border-radius:12px;border:1px solid var(--border);width:fit-content;flex-wrap:wrap}
+  .tab{padding:8px 18px;border-radius:8px;cursor:pointer;color:var(--text-dim);font-weight:500;font-size:13px;border:none;background:transparent;transition:all .15s}
+  .tab:hover{color:var(--text)}
+  .tab.active{background:var(--surface-2);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+
+  .panel{display:none;animation:fadeIn .2s ease}
+  .panel.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+  .card h2{font-size:14px;font-weight:600;margin-bottom:14px;letter-spacing:-.01em;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .card h2 .sub{font-size:11px;color:var(--text-muted);font-weight:400;text-transform:uppercase;letter-spacing:.05em}
+
+  .btn{padding:10px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);cursor:pointer;font-weight:500;font-size:13px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:#222e44;border-color:#3a4660}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent-3));border-color:transparent;color:white}
+  .btn-primary:hover{filter:brightness(1.15)}
+  .btn-danger{background:transparent;color:var(--danger);border-color:rgba(239,68,68,.3)}
+  .btn-danger:hover{background:rgba(239,68,68,.1)}
+  .btn-ghost{background:transparent}
+  .btn-sm{padding:6px 12px;font-size:12px}
+
+  /* ===== Diagnostic snapshot ===== */
+  .snapshot{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:14px}
+  .snap{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+  .snap .l{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;font-weight:600;margin-bottom:6px}
+  .snap .v{font-size:20px;font-weight:700;letter-spacing:-.02em}
+
+  /* ===== Insights ===== */
+  .insight{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;border-left:3px solid var(--c-priority,var(--accent));display:flex;flex-direction:column;gap:10px}
+  .insight-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+  .insight-title{font-size:14px;font-weight:600;flex:1;min-width:200px}
+  .insight-priority{font-size:10px;padding:3px 10px;border-radius:99px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:white;background:var(--c-priority,var(--accent));white-space:nowrap}
+  .insight-body{font-size:13px;color:var(--text-dim);line-height:1.6}
+  .insight-body strong{color:var(--text)}
+  .insight-action{background:var(--surface-2);border-left:2px solid var(--success);padding:10px 14px;border-radius:6px;font-size:13px;line-height:1.5}
+  .insight-action::before{content:"→ AÇÃO SUGERIDA";display:block;font-size:10px;color:var(--success);text-transform:uppercase;letter-spacing:.05em;font-weight:700;margin-bottom:4px}
+  .insight-actions-row{display:flex;gap:8px;flex-wrap:wrap}
+
+  /* ===== AI panel ===== */
+  .ai-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+  .ai-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;cursor:pointer;transition:all .15s;border-top:3px solid var(--c-prompt,var(--accent))}
+  .ai-card:hover{transform:translateY(-2px);border-color:var(--c-prompt,var(--accent))}
+  .ai-card .icon{font-size:22px;margin-bottom:8px}
+  .ai-card .title{font-size:14px;font-weight:600;margin-bottom:4px}
+  .ai-card .desc{font-size:12px;color:var(--text-dim);line-height:1.5}
+
+  .ai-input{display:flex;flex-direction:column;gap:10px}
+  .ai-input textarea{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:14px;border-radius:10px;font-size:14px;font-family:inherit;resize:vertical;min-height:100px}
+  .ai-input textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(168,85,247,.15)}
+  .ai-input .controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .ai-input select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;font-family:inherit}
+
+  .ai-response{background:var(--surface-2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-top:14px;font-size:14px;line-height:1.7;white-space:pre-wrap;word-wrap:break-word;max-height:600px;overflow-y:auto}
+  .ai-response.empty{text-align:center;color:var(--text-dim);font-style:italic;padding:40px 18px}
+  .ai-response h1,.ai-response h2,.ai-response h3{margin:16px 0 8px;color:var(--accent)}
+  .ai-response h1{font-size:18px}
+  .ai-response h2{font-size:16px}
+  .ai-response h3{font-size:14px}
+  .ai-response strong{color:var(--text);font-weight:600}
+  .ai-response code{background:var(--bg);padding:2px 6px;border-radius:4px;font-size:13px}
+  .ai-response ul,.ai-response ol{margin:8px 0 8px 20px}
+  .ai-response li{margin-bottom:4px}
+
+  .typing{display:inline-block;width:8px;height:14px;background:var(--accent);animation:blink 1s infinite;vertical-align:text-bottom;margin-left:2px}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+  /* ===== Settings (API config) ===== */
+  .setup-card{background:linear-gradient(135deg,rgba(168,85,247,.08),rgba(124,92,255,.05));border:1px solid rgba(168,85,247,.3);border-radius:14px;padding:20px;margin-bottom:14px}
+
+  /* ===== Form ===== */
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .form-group{display:flex;flex-direction:column;gap:6px}
+  .form-group label{font-size:11px;color:var(--text-dim);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+  .form-group input,.form-group select{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 12px;border-radius:8px;font-size:14px;font-family:inherit}
+  .form-group input:focus,.form-group select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(168,85,247,.15)}
+
+  /* ===== Templates ===== */
+  .tpl-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px}
+  .tpl-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:10px;flex-wrap:wrap}
+  .tpl-title{font-size:14px;font-weight:600}
+  .tpl-channel{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:700;color:white;text-transform:uppercase;letter-spacing:.05em}
+  .tpl-channel.ig{background:#E4405F}
+  .tpl-channel.wa{background:#25D366}
+  .tpl-channel.li{background:#0A66C2}
+  .tpl-channel.email{background:#7c5cff}
+  .tpl-body{font-size:13px;color:var(--text-dim);line-height:1.65;white-space:pre-wrap;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px}
+  .tpl-vars{font-size:11px;color:var(--text-muted);margin-bottom:8px}
+  .tpl-vars code{background:var(--bg);padding:2px 6px;border-radius:3px;color:var(--accent)}
+
+  /* ===== History ===== */
+  .hist-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px}
+  .hist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .hist-title{font-size:13px;font-weight:600;flex:1}
+  .hist-date{font-size:11px;color:var(--text-muted)}
+  .hist-preview{font-size:12px;color:var(--text-dim);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);padding:12px 18px;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.3);display:flex;gap:8px;align-items:center;font-size:13px;font-weight:500;transform:translateY(120%);transition:transform .25s ease;z-index:300}
+  .toast.show{transform:translateY(0)}
+  .toast.success::before{content:"✓";color:var(--success);font-weight:700}
+  .toast.error::before{content:"!";color:var(--danger);font-weight:700}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
+  .modal-bg.show{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:600px;width:90%;max-height:90vh;overflow-y:auto}
+  .modal h3{font-size:16px;margin-bottom:14px;font-weight:600}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+
+  .empty-state{text-align:center;padding:30px;color:var(--text-dim)}
+  .empty-state .icon{font-size:34px;margin-bottom:10px}
+
+  @media(max-width:768px){
+    .app{padding:14px}
+    nav.tabs{overflow-x:auto;width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">✦</div>
+      <div>
+        <h1>Envolve · Insights & IA</h1>
+        <p>Diagnóstico automático + geração de estratégia com IA</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="./" style="font-size:12px;padding:6px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);text-decoration:none;display:inline-flex;align-items:center;gap:6px">← Envolve</a>
+      <span class="badge" id="apiStatus">IA não configurada</span>
+      <button class="btn btn-sm" id="openSetup">⚙ Configurar IA</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-panel="diagnostic">Diagnóstico Automático</button>
+    <button class="tab" data-panel="ai">Estratégia com IA</button>
+    <button class="tab" data-panel="templates">Templates de Mensagem</button>
+    <button class="tab" data-panel="history">Histórico</button>
+  </nav>
+
+  <!-- ============ DIAGNOSTIC ============ -->
+  <section class="panel active" id="panel-diagnostic">
+    <div class="card">
+      <h2>Snapshot operacional <span class="sub">dados ao vivo dos sistemas</span></h2>
+      <div class="snapshot" id="snapshotGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2>Insights priorizados <span class="sub">o que merece sua atenção agora</span></h2>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Análise automática baseada em regras de Growth/CMO senior. Ordenado por impacto. Cada insight tem ação concreta sugerida.</p>
+      <div id="insightsList"></div>
+    </div>
+  </section>
+
+  <!-- ============ AI ============ -->
+  <section class="panel" id="panel-ai">
+    <div id="aiSetupNotice"></div>
+
+    <div class="card">
+      <h2>Prompts prontos <span class="sub">cliques contextualizados</span></h2>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Cada card já vem com o contexto dos seus dados injetado. Clique pra carregar e gerar.</p>
+      <div class="ai-grid" id="promptsGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2>Prompt customizado <span class="sub">pergunte o que quiser</span></h2>
+      <div class="ai-input">
+        <textarea id="customPrompt" placeholder="Ex: Crie um plano de 30 dias pra eu repor os 5 mil de receita perdida. Foco em outbound + upsell. Considere meu ticket médio atual e a base que eu tenho."></textarea>
+        <div class="controls">
+          <select id="promptContext">
+            <option value="all">Contexto: tudo (recomendado)</option>
+            <option value="financial">Só financeiro</option>
+            <option value="commercial">Só comercial</option>
+            <option value="marketing">Só marketing/leads</option>
+            <option value="social">Só social selling</option>
+            <option value="none">Sem contexto (prompt puro)</option>
+          </select>
+          <button class="btn btn-primary" id="runCustom">✦ Gerar com IA</button>
+          <span style="font-size:12px;color:var(--text-dim);margin-left:auto" id="aiHint">Configure sua API key em ⚙</span>
+        </div>
+      </div>
+      <div class="ai-response empty" id="aiResponse">A resposta da IA vai aparecer aqui.</div>
+    </div>
+  </section>
+
+  <!-- ============ TEMPLATES ============ -->
+  <section class="panel" id="panel-templates">
+    <div class="card">
+      <h2>Templates de mensagem <span class="sub">scripts prontos pra usar</span></h2>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Mensagens calibradas pra cada momento da jornada. Variáveis em <code style="background:var(--surface-2);padding:2px 6px;border-radius:4px;color:var(--accent)">{nome}</code> são substituídas. Clique em "Personalizar" pra escolher um lead/cliente.</p>
+      <div id="templatesList"></div>
+    </div>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section class="panel" id="panel-history">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div>
+        <h2 style="font-size:18px;font-weight:600">Histórico de insights gerados</h2>
+        <p style="font-size:13px;color:var(--text-dim);margin-top:4px" id="histSummary">—</p>
+      </div>
+      <button class="btn btn-sm btn-danger" id="clearHistory">Limpar histórico</button>
+    </div>
+    <div id="historyList"></div>
+  </section>
+</div>
+
+<div class="modal-bg" id="modal"><div class="modal" id="modalContent"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ============= CONFIG =============
+const STORAGE_KEY = 'envolve.insights.v1';
+const PROVIDERS = {
+  claude: {
+    label:'Anthropic Claude',
+    models:[
+      {id:'claude-sonnet-4-6',label:'Claude Sonnet 4.6 (recomendado)'},
+      {id:'claude-opus-4-6',label:'Claude Opus 4.6 (mais poderoso)'},
+      {id:'claude-haiku-4-5-20251001',label:'Claude Haiku 4.5 (mais rápido/barato)'}
+    ],
+    keyHint:'Pegue em console.anthropic.com → API Keys'
+  },
+  openai: {
+    label:'OpenAI',
+    models:[
+      {id:'gpt-4o',label:'GPT-4o (recomendado)'},
+      {id:'gpt-4o-mini',label:'GPT-4o mini (mais barato)'},
+      {id:'gpt-4-turbo',label:'GPT-4 Turbo'}
+    ],
+    keyHint:'Pegue em platform.openai.com/api-keys'
+  },
+  gemini: {
+    label:'Google Gemini',
+    models:[
+      {id:'gemini-1.5-pro',label:'Gemini 1.5 Pro (recomendado)'},
+      {id:'gemini-1.5-flash',label:'Gemini 1.5 Flash (rápido)'}
+    ],
+    keyHint:'Pegue em aistudio.google.com → Get API key (free tier disponível)'
+  }
+};
+
+// ============= STATE =============
+let state = {
+  apiConfig: {provider:'claude', apiKey:'', model:'claude-sonnet-4-6'},
+  history: [] // [{id, prompt, response, timestamp, provider, model}]
+};
+
+// ============= STORAGE =============
+function load(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) Object.assign(state, JSON.parse(raw));
+  }catch(e){}
+  if(!state.apiConfig) state.apiConfig = {provider:'claude',apiKey:'',model:'claude-sonnet-4-6'};
+  if(!state.history) state.history = [];
+}
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function getJSON(key){ try{ return JSON.parse(localStorage.getItem(key)||'null'); }catch(e){ return null; } }
+
+// ============= HELPERS =============
+const fmtBRL = v => 'R$ ' + Math.abs(v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtBRLs = v => (v<0?'-':'')+fmtBRL(v);
+const fmtNum = v => (v||0).toLocaleString('pt-BR');
+const fmtPct = v => (v||0).toFixed(1)+'%';
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function uid(){ return 'i-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,6); }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function toast(msg, type='success'){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>t.classList.remove('show'),2400); }
+function openModal(html){ document.getElementById('modalContent').innerHTML=html; document.getElementById('modal').classList.add('show'); }
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
+
+// ============= TABS =============
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+    if(btn.dataset.panel==='diagnostic') renderDiagnostic();
+    if(btn.dataset.panel==='ai') renderAI();
+    if(btn.dataset.panel==='templates') renderTemplates();
+    if(btn.dataset.panel==='history') renderHistory();
+  });
+});
+
+// ============= DATA AGGREGATION (lê todos os sistemas) =============
+function getAllData(){
+  // Marketing/Leads
+  const mkt = getJSON('hawkins.marketing.v1') || {};
+  const today = new Date();
+  const ym = today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0');
+  const lastYm = (() => { const d=new Date(today.getFullYear(),today.getMonth()-1,1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); })();
+
+  const channels = ['outbound','trafego_direto','webinario','social_seller','inbound_marketing','indicacao','reengajamento','trafego_form_nativo','trafego_form_externo','trafego_isca_digital','trafego_front_end','evento_presencial'];
+  const channelLabels = {outbound:'Outbound',trafego_direto:'Tráfego Direto',webinario:'Webinário',social_seller:'Social Seller',inbound_marketing:'Inbound',indicacao:'Indicação',reengajamento:'Reengajamento',trafego_form_nativo:'Form Nativo',trafego_form_externo:'Form Externo',trafego_isca_digital:'Isca Digital',trafego_front_end:'Front End',evento_presencial:'Evento'};
+
+  const monthMkt = {leads:0, inv:0, byChannel:{}};
+  const lastMonthMkt = {leads:0, inv:0};
+  Object.entries(mkt).forEach(([iso,r])=>{
+    const sum = channels.reduce((s,c)=>s+(+r[c]||0),0);
+    if(iso.startsWith(ym)){
+      monthMkt.leads+=sum;
+      monthMkt.inv+=+r.valor_investido||0;
+      channels.forEach(c=>{ monthMkt.byChannel[c]=(monthMkt.byChannel[c]||0)+(+r[c]||0); });
+    }
+    if(iso.startsWith(lastYm)){
+      lastMonthMkt.leads+=sum;
+      lastMonthMkt.inv+=+r.valor_investido||0;
+    }
+  });
+  const cpl = monthMkt.leads>0 ? monthMkt.inv/monthMkt.leads : 0;
+  const topChannel = Object.entries(monthMkt.byChannel).sort((a,b)=>b[1]-a[1])[0];
+  const topChannelPct = monthMkt.leads>0 && topChannel ? (topChannel[1]/monthMkt.leads*100) : 0;
+
+  // Social Selling
+  const ss = getJSON('envolve.socialselling.v1') || {};
+  const ssLeads = getJSON('envolve.socialselling.leads.v1') || [];
+  let prospec=0, aceites=0, respostas=0, reunioes=0, vendas=0, receitaSS=0;
+  Object.entries(ss).forEach(([iso,d])=>{
+    if(!iso.startsWith(ym)) return;
+    ['linkedin','instagram','whatsapp'].forEach(ch=>{
+      if(!d[ch]) return;
+      prospec+=(+d[ch].conexoes_enviadas||0)+(+d[ch].mensagens_iniciais||0)+(+d[ch].followups||0)+(+d[ch].dms||0);
+      aceites+=+d[ch].conexoes_aceitas||0;
+      respostas+=+d[ch].respostas||0;
+    });
+    if(d.conversao){
+      reunioes+=+d.conversao.reunioes_realizadas||0;
+      vendas+=+d.conversao.vendas_qtd||0;
+      receitaSS+=+d.conversao.vendas_valor||0;
+    }
+  });
+
+  // Comercial
+  const com = getJSON('envolve.comercial.v1') || {};
+  const clients = com.clients || [];
+  const churned = com.churned || [];
+  const opps = com.opportunities || [];
+  const pendencies = com.pendencies || [];
+  const mrr = clients.reduce((s,c)=>s+(+c.mrr||0),0);
+  const ticketMedio = clients.length>0 ? mrr/clients.length : 0;
+  const sortedC = [...clients].sort((a,b)=>b.mrr-a.mrr);
+  const top3Mrr = sortedC.slice(0,3).reduce((s,c)=>s+c.mrr,0);
+  const top3Pct = mrr>0 ? top3Mrr/mrr*100 : 0;
+  const churnTotal = churned.reduce((s,c)=>s+(+c.mrr||0),0);
+  const pendOpen = pendencies.filter(p=>p.status==='open').length;
+  const pendOverdue = pendencies.filter(p=>p.status==='open' && p.dueDate && p.dueDate<todayISO()).length;
+  const pipeOpen = opps.filter(o=>o.stage!=='won').reduce((s,o)=>s+(+o.value||0),0);
+  const forecast = opps.filter(o=>o.stage!=='won').reduce((s,o)=>s+((+o.value||0)*((+o.probability||0)/100)),0);
+
+  // Financeiro
+  const fin = getJSON('controle.financeiro.v1') || {};
+  const accs = fin.accounts || [];
+  const txs = fin.transactions || [];
+  const accScope = id => accs.find(a=>a.id===id)?.scope || 'pf';
+  let saldoPf=0, saldoPj=0, despMes=0, recMes=0;
+  txs.forEach(t=>{
+    const sc = accScope(t.accountId);
+    const delta = t.type==='income'?t.value:-t.value;
+    if(sc==='pj') saldoPj+=delta; else saldoPf+=delta;
+    if((t.date||'').startsWith(ym)){
+      if(t.type==='expense') despMes+=t.value;
+      else recMes+=t.value;
+    }
+  });
+
+  return {
+    marketing:{...monthMkt, lastMonth:lastMonthMkt, cpl, topChannel:topChannel?{key:topChannel[0],label:channelLabels[topChannel[0]],count:topChannel[1],pct:topChannelPct}:null, channels, channelLabels},
+    socialSelling:{prospec, aceites, respostas, reunioes, vendas, receita:receitaSS, leads:ssLeads, leadsActive:ssLeads.filter(l=>['novo','conversa','qualificado','reuniao'].includes(l.status)).length, taxaAceite:prospec>0?aceites/prospec*100:0, taxaResposta:prospec>0?respostas/prospec*100:0},
+    commercial:{mrr, clients, churned, opps, pendencies, ticketMedio, top3Pct, top3Mrr, churnTotal, churnCount:churned.length, pendOpen, pendOverdue, pipeOpen, forecast},
+    financial:{saldoPf, saldoPj, saldoTotal:saldoPf+saldoPj, despMes, recMes, balance:recMes-despMes, savingsRate:recMes>0?(recMes-despMes)/recMes*100:0}
+  };
+}
+
+// ============= DIAGNOSTIC (rule-based) =============
+function renderDiagnostic(){
+  const d = getAllData();
+
+  // Snapshot
+  const sg = document.getElementById('snapshotGrid');
+  sg.innerHTML = '';
+  const snaps = [
+    {l:'MRR atual',v:fmtBRL(d.commercial.mrr)},
+    {l:'Clientes ativos',v:fmtNum(d.commercial.clients.length)},
+    {l:'Pipeline aberto',v:fmtBRL(d.commercial.pipeOpen)},
+    {l:'Leads no mês',v:fmtNum(d.marketing.leads)},
+    {l:'CPL médio',v:d.marketing.cpl>0?fmtBRL(d.marketing.cpl):'—'},
+    {l:'Reuniões SS mês',v:fmtNum(d.socialSelling.reunioes)},
+    {l:'Saldo PF+PJ',v:fmtBRLs(d.financial.saldoTotal)},
+    {l:'Pendências abertas',v:fmtNum(d.commercial.pendOpen)},
+  ];
+  snaps.forEach(s=>{
+    const el = document.createElement('div'); el.className='snap';
+    el.innerHTML = `<div class="l">${s.l}</div><div class="v">${s.v}</div>`;
+    sg.appendChild(el);
+  });
+
+  // Generate insights
+  const insights = generateInsights(d);
+  const list = document.getElementById('insightsList');
+  list.innerHTML = '';
+  if(insights.length===0){
+    list.innerHTML = `<div class="empty-state"><div class="icon">🎯</div>Sem insights críticos no momento. Mantenha a operação rodando.</div>`;
+    return;
+  }
+  insights.forEach(ins=>{
+    const colors = {high:'#ef4444',medium:'#f59e0b',low:'#06b6d4',positive:'#10b981'};
+    const div = document.createElement('div');
+    div.className='insight';
+    div.style.setProperty('--c-priority', colors[ins.priority]||colors.medium);
+    div.innerHTML = `
+      <div class="insight-head">
+        <div class="insight-title">${ins.title}</div>
+        <span class="insight-priority" style="background:${colors[ins.priority]||colors.medium}">${ins.priority==='high'?'ALTA':ins.priority==='medium'?'MÉDIA':ins.priority==='positive'?'POSITIVO':'BAIXA'}</span>
+      </div>
+      <div class="insight-body">${ins.body}</div>
+      ${ins.action?`<div class="insight-action">${ins.action}</div>`:''}
+      <div class="insight-actions-row">
+        <button class="btn btn-sm" data-expand-ai="${escapeHtml(ins.aiPrompt||ins.title)}">✦ Expandir com IA</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+  list.querySelectorAll('[data-expand-ai]').forEach(b=> b.addEventListener('click',()=>{
+    document.querySelector('.tab[data-panel="ai"]').click();
+    setTimeout(()=>{
+      document.getElementById('customPrompt').value = b.dataset.expandAi;
+      document.getElementById('customPrompt').scrollIntoView({behavior:'smooth',block:'center'});
+    },200);
+  }));
+}
+
+function generateInsights(d){
+  const out = [];
+  const m = d.marketing, s = d.socialSelling, c = d.commercial, f = d.financial;
+
+  // 1. Concentração de receita
+  if(c.mrr>0 && c.top3Pct>50){
+    out.push({
+      priority:'high',
+      title:`Concentração crítica: top 3 clientes = ${c.top3Pct.toFixed(0)}% do MRR`,
+      body:`Seus 3 maiores clientes somam <strong>${fmtBRL(c.top3Mrr)}</strong> de ${fmtBRL(c.mrr)}. Perder 1 deles afeta diretamente o caixa.`,
+      action:`Diversifique a base. Como meta nos próximos 90 dias: nenhum cliente único deve passar de 25% do MRR. Foque em captação ativa pra distribuir o risco.`,
+      aiPrompt:`Tenho concentração de receita: meus 3 maiores clientes são ${c.top3Pct.toFixed(0)}% do MRR (R$ ${c.top3Mrr.toFixed(0)} de R$ ${c.mrr.toFixed(0)}). Crie um plano específico pra reduzir essa concentração nos próximos 90 dias, com ações semanais concretas.`
+    });
+  }
+
+  // 2. Churn
+  if(c.churnCount>=3 || c.churnTotal>=3000){
+    out.push({
+      priority:'high',
+      title:`${c.churnCount} clientes perdidos · ${fmtBRL(c.churnTotal)} de churn acumulado`,
+      body:`A perda de ${fmtBRL(c.churnTotal)} em clientes ativos é significativa. Antes de captar mais, preciso entender por que estão saindo — caso contrário marketing escala vazamento.`,
+      action:`Faça post-mortem dos churns. Ligue pra cada um (sim, ligue) com 3 perguntas: 1) o que faltou? 2) o que sobrou? 3) o que faríamos pra você voltar? Em 90 dias você terá padrão de evasão.`,
+      aiPrompt:`Perdi ${c.churnCount} clientes recentemente, totalizando R$ ${c.churnTotal.toFixed(0)} de churn. Crie um roteiro de entrevista de saída (5 perguntas), um framework pra classificar os motivos, e 3 hipóteses de causa raiz baseadas em padrões comuns de agências de marketing.`
+    });
+  }
+
+  // 3. Ticket médio
+  if(c.ticketMedio>0 && c.ticketMedio<1500){
+    out.push({
+      priority:'medium',
+      title:`Ticket médio R$ ${c.ticketMedio.toFixed(0)} limita escalabilidade`,
+      body:`Cliente abaixo de R$ 1.500/mês geralmente exige a mesma operação que cliente de R$ 3k mas paga metade. Sua hora vale o mesmo independente do ticket.`,
+      action:`Crie uma oferta premium (R$ 2.500-3.500/mês) com 2-3 entregas a mais. Identifique 2-3 clientes da base com potencial e ofereça upgrade.`,
+      aiPrompt:`Meu ticket médio é R$ ${c.ticketMedio.toFixed(0)}. Crie uma estrutura de oferta premium pra agência de marketing focada em PMEs, posicionada acima do meu pacote atual. Preciso de: nome do pacote, entregas, justificativa de preço, e script pra apresentar a clientes da base.`
+    });
+  }
+
+  // 4. CPL muito alto vs ticket
+  if(m.cpl>0 && c.ticketMedio>0){
+    const paybackMeses = m.cpl / c.ticketMedio;
+    if(paybackMeses>1){
+      out.push({
+        priority:'high',
+        title:`CPL = ${(paybackMeses).toFixed(1)} meses de receita do cliente`,
+        body:`Você paga ${fmtBRL(m.cpl)} por lead, mas o ticket é ${fmtBRL(c.ticketMedio)}. Pra cada lead virar cliente, precisa fechar acima da taxa que justifique o CAC.`,
+        action:`Calcule sua taxa de conversão lead→cliente. Se for menos de ${(m.cpl/c.ticketMedio*1.3).toFixed(0)}%, marketing pago está sangrando. Foque em canais orgânicos (indicação, conteúdo) ou ajuste oferta.`,
+        aiPrompt:`Meu CPL é R$ ${m.cpl.toFixed(0)} e ticket médio é R$ ${c.ticketMedio.toFixed(0)} (assinatura mensal recorrente). Calcule meu CAC payback ideal e diga se essa relação é saudável. Sugira 3 ações pra melhorar a unit economics.`
+      });
+    }
+  }
+
+  // 5. Mix de canais
+  if(m.topChannel && m.topChannel.pct>70){
+    out.push({
+      priority:'medium',
+      title:`${m.topChannel.label} concentra ${m.topChannel.pct.toFixed(0)}% dos leads`,
+      body:`<strong>${m.topChannel.count}</strong> de ${m.marketing?.leads||m.leads} leads vieram só de ${m.topChannel.label}. Se esse canal cair (algoritmo, custo, saturação), você fica sem leads.`,
+      action:`Ative pelo menos um segundo canal nos próximos 30 dias. Indicação e webinário tem o melhor ROI pra agência de marketing.`,
+      aiPrompt:`Meu canal principal de leads é ${m.topChannel.label} representando ${m.topChannel.pct.toFixed(0)}% do volume mensal. Quero criar dependência menor. Sugira 3 canais complementares específicos pra agência de marketing brasileira de pequeno porte, com ações concretas pra ativar cada um em 30 dias.`
+    });
+  }
+
+  // 6. Pendências vencidas
+  if(c.pendOverdue>0){
+    out.push({
+      priority:'high',
+      title:`${c.pendOverdue} pendências VENCIDAS na operação`,
+      body:`Pendência atrasada é gatilho clássico de churn. Cliente percebe atraso, perde confiança, começa a olhar pro mercado.`,
+      action:`Hoje. Pare tudo. Resolva ou comunique cada uma. "Atraso comunicado vale 10x atraso silencioso."`,
+      aiPrompt:`Tenho ${c.pendOverdue} pendências vencidas com clientes ativos. Crie um template de mensagem (WhatsApp/email) pra comunicar atraso de forma profissional, mantendo confiança e reposicionando o prazo. Inclua estrutura padrão e 2 variações de tom.`
+    });
+  }
+
+  // 7. Pipeline vs gap
+  const gap = 5000; // gap conhecido
+  if(c.pipeOpen<gap*2){
+    out.push({
+      priority:'medium',
+      title:`Pipeline (${fmtBRL(c.pipeOpen)}) menor que 2x o gap mensal`,
+      body:`Regra de growth: pipeline aberto deve ser 3-4x o objetivo de receita pra fechar com margem de erro. O seu está em ${(c.pipeOpen/gap).toFixed(1)}x, ainda apertado.`,
+      action:`Meta de prospecção pro próximo mês: triplicar o pipeline. Bata 5-10 contatos qualificados por dia. Volume vence funil ruim.`,
+      aiPrompt:`Meu pipeline atual é R$ ${c.pipeOpen.toFixed(0)} e meu gap mensal de receita é R$ ${gap}. Estou em ${(c.pipeOpen/gap).toFixed(1)}x o gap. Crie um plano de prospecção de 30 dias pra triplicar o pipeline, com metas semanais quantitativas e ações específicas.`
+    });
+  }
+
+  // 8. Saúde financeira
+  if(f.saldoTotal<0){
+    out.push({
+      priority:'high',
+      title:`Saldo PF+PJ negativo: ${fmtBRLs(f.saldoTotal)}`,
+      body:`Operação queimando caixa. Sem reserva, qualquer atraso de cliente vira crise.`,
+      action:`Antes de qualquer estratégia: identifique despesas cortáveis em 7 dias. Atrase investimentos em ferramentas. Foque exclusivamente em captação imediata.`,
+      aiPrompt:`Meu saldo PF+PJ está em R$ ${f.saldoTotal.toFixed(0)} (negativo). Crie um plano emergencial de 30 dias com 3 frentes: corte de despesas (sugira itens típicos), aceleração de recebimento, e captação imediata. Ações concretas e priorizadas.`
+    });
+  }
+
+  // 9. Social selling: taxa de aceite/resposta baixa
+  if(s.prospec>50){
+    if(s.taxaAceite<20){
+      out.push({
+        priority:'medium',
+        title:`Taxa de aceite SS em ${s.taxaAceite.toFixed(1)}% (baixa)`,
+        body:`Você mandou ${fmtNum(s.prospec)} mensagens e teve só ${fmtNum(s.aceites)} aceites. Acima de 30% é saudável. Aceite baixo = problema de ICP ou copy de abordagem.`,
+        action:`Refaça o copy de abordagem. Tire qualquer pitch da primeira mensagem. Use gancho contextual (algo do perfil/empresa do prospect).`,
+        aiPrompt:`Minha taxa de aceite em prospecção via Instagram/LinkedIn está em ${s.taxaAceite.toFixed(1)}% (mandei ${s.prospec} mensagens, ${s.aceites} aceitaram). Crie 5 variações de mensagem inicial fria pra agência de marketing prospectando PMEs, focando em personalização e gancho contextual. Cada variação com hipótese do que está sendo testado.`
+      });
+    }
+  }
+
+  // 10. Leads cadastrados sem ação
+  const leadsParados = s.leads.filter(l=>l.status==='novo' && l.createdAt && new Date(l.createdAt) < new Date(Date.now()-7*24*60*60*1000)).length;
+  if(leadsParados>0){
+    out.push({
+      priority:'medium',
+      title:`${leadsParados} leads parados há +7 dias sem follow-up`,
+      body:`Lead esquecido vira lead morto. Lead que entrou e não foi tocado em uma semana já está em outra solução.`,
+      action:`Hoje: faça follow-up nos ${leadsParados} leads. Mude status. Crie tarefa.`,
+      aiPrompt:`Tenho ${leadsParados} leads cadastrados como "novo" há mais de 7 dias sem follow-up. Crie um template de mensagem de retomada amigável (não pushy) pra leads frios + estrutura de cadência (quantas tentativas, em quais intervalos, em quais canais).`
+    });
+  }
+
+  // 11. Insight POSITIVO se as coisas estão bem
+  if(c.mrr>10000 && f.savingsRate>20 && c.pendOpen===0){
+    out.push({
+      priority:'positive',
+      title:`Operação saudável: MRR ${fmtBRL(c.mrr)}, taxa de poupança ${f.savingsRate.toFixed(0)}%`,
+      body:`Indicadores positivos. Hora de pensar em escala — produto, time, posicionamento.`,
+      action:`Quando a operação está saudável é o momento certo de investir em diferenciação. Se ela só estiver "ok", você foge do problema. Se estiver bem, você cria vantagem.`,
+      aiPrompt:`Minha operação está saudável (MRR R$ ${c.mrr.toFixed(0)}, saúde financeira positiva, sem pendências). Quero crescer pra próximo nível em 6 meses. Crie um plano estratégico focado em diferenciação, escala de time e posicionamento — não em mais hustle.`
+    });
+  }
+
+  // Ordenar: high → medium → positive → low
+  const order = {high:0, medium:1, positive:2, low:3};
+  out.sort((a,b)=>order[a.priority]-order[b.priority]);
+  return out;
+}
+
+// ============= AI =============
+function isApiConfigured(){ return state.apiConfig && state.apiConfig.apiKey && state.apiConfig.apiKey.length>10; }
+function updateApiStatus(){
+  const badge = document.getElementById('apiStatus');
+  if(isApiConfigured()){
+    badge.className='badge ok';
+    badge.textContent = `IA: ${PROVIDERS[state.apiConfig.provider].label}`;
+    document.getElementById('aiHint').textContent = `Usando ${state.apiConfig.model}`;
+  } else {
+    badge.className='badge warn';
+    badge.textContent = 'IA não configurada';
+    document.getElementById('aiHint').textContent = 'Configure sua API key em ⚙';
+  }
+}
+
+function buildContext(scope='all'){
+  const d = getAllData();
+  const lines = [];
+  lines.push('=== CONTEXTO OPERACIONAL DO USUÁRIO ===');
+  if(scope==='all' || scope==='commercial'){
+    lines.push('');
+    lines.push('## CARTEIRA COMERCIAL');
+    lines.push(`MRR atual: ${fmtBRL(d.commercial.mrr)}`);
+    lines.push(`Clientes ativos: ${d.commercial.clients.length}`);
+    lines.push(`Ticket médio: ${fmtBRL(d.commercial.ticketMedio)}`);
+    lines.push(`Concentração top 3: ${d.commercial.top3Pct.toFixed(0)}%`);
+    if(d.commercial.clients.length){
+      lines.push('Clientes:');
+      d.commercial.clients.forEach(c=> lines.push(`- ${c.name}: ${fmtBRL(c.mrr)}/mês`));
+    }
+    if(d.commercial.churned.length){
+      lines.push(`Churn: ${d.commercial.churnCount} clientes (${fmtBRL(d.commercial.churnTotal)}/mês perdidos)`);
+      d.commercial.churned.slice(-5).forEach(c=> lines.push(`- ${c.name} (saiu ${c.churnDate}, motivo: ${c.reason||'não informado'})`));
+    }
+    lines.push(`Pipeline aberto: ${fmtBRL(d.commercial.pipeOpen)} (forecast ponderado: ${fmtBRL(d.commercial.forecast)})`);
+    lines.push(`Pendências em aberto: ${d.commercial.pendOpen} (${d.commercial.pendOverdue} vencidas)`);
+  }
+  if(scope==='all' || scope==='marketing'){
+    lines.push('');
+    lines.push('## MARKETING / LEADS');
+    lines.push(`Leads no mês: ${fmtNum(d.marketing.leads)}`);
+    lines.push(`Investimento: ${fmtBRL(d.marketing.inv)}`);
+    lines.push(`CPL: ${d.marketing.cpl>0?fmtBRL(d.marketing.cpl):'—'}`);
+    if(d.marketing.topChannel) lines.push(`Canal principal: ${d.marketing.topChannel.label} (${d.marketing.topChannel.pct.toFixed(0)}% dos leads)`);
+    const byCh = Object.entries(d.marketing.byChannel||{}).filter(([k,v])=>v>0);
+    if(byCh.length) lines.push('Mix: ' + byCh.map(([k,v])=>`${d.marketing.channelLabels[k]}: ${v}`).join(' · '));
+  }
+  if(scope==='all' || scope==='social'){
+    lines.push('');
+    lines.push('## SOCIAL SELLING');
+    lines.push(`Atividades de prospecção no mês: ${fmtNum(d.socialSelling.prospec)}`);
+    lines.push(`Aceites/seguidores: ${fmtNum(d.socialSelling.aceites)} (taxa ${d.socialSelling.taxaAceite.toFixed(1)}%)`);
+    lines.push(`Respostas: ${fmtNum(d.socialSelling.respostas)} (taxa ${d.socialSelling.taxaResposta.toFixed(1)}%)`);
+    lines.push(`Reuniões realizadas: ${fmtNum(d.socialSelling.reunioes)}`);
+    lines.push(`Receita de social selling: ${fmtBRL(d.socialSelling.receita)}`);
+    lines.push(`Leads cadastrados: ${d.socialSelling.leads.length} (${d.socialSelling.leadsActive} ativos)`);
+  }
+  if(scope==='all' || scope==='financial'){
+    lines.push('');
+    lines.push('## FINANCEIRO');
+    lines.push(`Saldo PF: ${fmtBRLs(d.financial.saldoPf)}`);
+    lines.push(`Saldo PJ: ${fmtBRLs(d.financial.saldoPj)}`);
+    lines.push(`Receita do mês: ${fmtBRL(d.financial.recMes)}`);
+    lines.push(`Despesas do mês: ${fmtBRL(d.financial.despMes)}`);
+    lines.push(`Taxa de poupança: ${d.financial.savingsRate.toFixed(1)}%`);
+  }
+  return lines.join('\n');
+}
+
+const SYSTEM_PROMPT = `Você é um Estrategista Sênior de Marketing e Growth (Nível CMO) com 360° de visão sobre o negócio. Sua função é dar conselhos pragmáticos, acionáveis e específicos baseados nos dados reais que o usuário fornece. Princípios:
+- Seja DIRETO e CONCRETO. Nada de generalidades.
+- Use os números reais do contexto sempre que possível.
+- Priorize ações por impacto e prazo (curto: 30 dias / médio: 90 dias / longo: 6+ meses).
+- Pense em unit economics, retenção e diferenciação — não só em volume.
+- Português do Brasil, tom executivo e direto.
+- Use markdown leve (negrito, listas) pra organizar respostas longas.
+- Quando faltar dado, peça especificamente o que precisa em vez de chutar.`;
+
+async function callAI(userPrompt, scope='all'){
+  if(!isApiConfigured()){ throw new Error('Configure sua API key primeiro (botão ⚙ no canto superior).'); }
+  const ctx = buildContext(scope);
+  const fullPrompt = scope==='none' ? userPrompt : `${ctx}\n\n=== PERGUNTA ===\n${userPrompt}`;
+  const provider = state.apiConfig.provider;
+  const apiKey = state.apiConfig.apiKey;
+  const model = state.apiConfig.model;
+
+  if(provider==='claude'){
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({model, max_tokens:2048, system:SYSTEM_PROMPT, messages:[{role:'user',content:fullPrompt}]})
+    });
+    if(!res.ok){ const err=await res.text(); throw new Error('Claude API: '+err.slice(0,300)); }
+    const j = await res.json();
+    return j.content?.[0]?.text || JSON.stringify(j);
+  }
+  if(provider==='openai'){
+    const res = await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'content-type':'application/json','authorization':'Bearer '+apiKey},
+      body:JSON.stringify({model, messages:[{role:'system',content:SYSTEM_PROMPT},{role:'user',content:fullPrompt}], max_tokens:2048})
+    });
+    if(!res.ok){ const err=await res.text(); throw new Error('OpenAI API: '+err.slice(0,300)); }
+    const j = await res.json();
+    return j.choices?.[0]?.message?.content || JSON.stringify(j);
+  }
+  if(provider==='gemini'){
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,{
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({systemInstruction:{parts:[{text:SYSTEM_PROMPT}]}, contents:[{role:'user', parts:[{text:fullPrompt}]}], generationConfig:{maxOutputTokens:2048}})
+    });
+    if(!res.ok){ const err=await res.text(); throw new Error('Gemini API: '+err.slice(0,300)); }
+    const j = await res.json();
+    return j.candidates?.[0]?.content?.parts?.[0]?.text || JSON.stringify(j);
+  }
+}
+
+function renderMarkdown(text){
+  // mini markdown renderer
+  let html = escapeHtml(text);
+  html = html.replace(/^### (.+)$/gm,'<h3>$1</h3>');
+  html = html.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  html = html.replace(/^# (.+)$/gm,'<h1>$1</h1>');
+  html = html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  html = html.replace(/`([^`]+)`/g,'<code>$1</code>');
+  return html;
+}
+
+const PROMPT_TEMPLATES = [
+  {icon:'🎯',title:'Plano de 30 dias pra repor receita',color:'#ef4444',prompt:'Crie um plano detalhado de 30 dias pra eu recuperar a receita perdida e voltar ao patamar pré-churn. Quero ações semana a semana, com metas quantitativas, focando em: reativação, upsell e prospecção ativa. Seja específico nos números esperados.'},
+  {icon:'💎',title:'Estratégia de upsell na base atual',color:'#a855f7',prompt:'Olhando a minha carteira atual, sugira oportunidades específicas de upsell por cliente. Pra cada um, indique: oferta complementar, ticket adicional realista e como abrir a conversa. Quero subir o ticket médio sem perder cliente.'},
+  {icon:'🚀',title:'Oferta premium pra subir ticket',color:'#7c5cff',prompt:'Crie a estrutura de uma oferta premium (R$ 2.500-3.500/mês) pra agência de marketing. Inclua: nome do pacote, entregas, posicionamento contra a oferta atual, justificativa de preço e script de apresentação pra clientes da base.'},
+  {icon:'📝',title:'Conteúdo da semana pra LinkedIn/IG',color:'#0A66C2',prompt:'Sugira 5 ideias de conteúdo pra essa semana — 3 pra LinkedIn (texto) e 2 pra Instagram (Reel + carrossel). Foco em atrair PMEs que estão buscando agência de marketing. Cada ideia com gancho, ângulo e CTA.'},
+  {icon:'🔁',title:'Reativar leads frios',color:'#06b6d4',prompt:'Crie um plano pra reativar leads que entraram em contato nos últimos 6-12 meses e não fecharam. Inclua: critério de priorização, sequência de mensagens (3-4 toques), template específico de cada toque, e gatilho de oferta.'},
+  {icon:'📊',title:'Análise SWOT da operação',color:'#f59e0b',prompt:'Com base nos dados, faça uma SWOT (Forças, Fraquezas, Oportunidades, Ameaças) honesta da minha operação atual. Seja crítico — quero ver o que estou ignorando.'},
+  {icon:'🎤',title:'Script de discovery call',color:'#10b981',prompt:'Crie um script de discovery call (reunião inicial) pra prospects de agência de marketing. Estrutura de 30min, perguntas-chave de qualificação, como apresentar a oferta, como contornar 3 objeções comuns ("preço", "já tenho alguém", "preciso pensar").'},
+  {icon:'🛡️',title:'Plano de retenção por cliente',color:'#ec4899',prompt:'Análise cliente por cliente da minha carteira atual: identifique riscos de churn (sinais de alerta), e sugira ação preventiva específica pra cada um. Foque nos 3 maiores primeiro.'},
+];
+
+function renderAI(){
+  // Setup notice
+  const notice = document.getElementById('aiSetupNotice');
+  if(!isApiConfigured()){
+    notice.innerHTML = `
+      <div class="setup-card">
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="font-size:24px">✦</div>
+          <div style="flex:1;min-width:200px">
+            <h3 style="font-size:14px;margin-bottom:4px">Configure sua API key pra ativar a IA</h3>
+            <p style="font-size:12px;color:var(--text-dim)">Suporte a Claude (Anthropic), OpenAI ou Gemini (Google). Sua chave fica salva apenas no navegador, nunca enviada a outros servidores.</p>
+          </div>
+          <button class="btn btn-primary" onclick="document.getElementById('openSetup').click()">⚙ Configurar agora</button>
+        </div>
+      </div>
+    `;
+  } else { notice.innerHTML=''; }
+
+  // Prompts grid
+  const grid = document.getElementById('promptsGrid');
+  grid.innerHTML='';
+  PROMPT_TEMPLATES.forEach(t=>{
+    const card = document.createElement('div');
+    card.className='ai-card';
+    card.style.setProperty('--c-prompt', t.color);
+    card.innerHTML = `
+      <div class="icon">${t.icon}</div>
+      <div class="title">${t.title}</div>
+      <div class="desc">${t.prompt.slice(0,100)}...</div>
+    `;
+    card.addEventListener('click',()=>{
+      document.getElementById('customPrompt').value = t.prompt;
+      document.getElementById('customPrompt').focus();
+      document.getElementById('customPrompt').scrollIntoView({behavior:'smooth',block:'center'});
+    });
+    grid.appendChild(card);
+  });
+
+  updateApiStatus();
+}
+
+document.getElementById('runCustom').addEventListener('click', async ()=>{
+  const prompt = document.getElementById('customPrompt').value.trim();
+  if(!prompt){ toast('Digite uma pergunta','error'); return; }
+  const scope = document.getElementById('promptContext').value;
+  const respEl = document.getElementById('aiResponse');
+  respEl.classList.remove('empty');
+  respEl.innerHTML = '<em>Pensando...</em><span class="typing"></span>';
+  document.getElementById('runCustom').disabled = true;
+  try{
+    const out = await callAI(prompt, scope);
+    respEl.innerHTML = renderMarkdown(out);
+    // Save to history
+    state.history.unshift({id:uid(), prompt, response:out, timestamp:new Date().toISOString(), provider:state.apiConfig.provider, model:state.apiConfig.model, scope});
+    state.history = state.history.slice(0, 100);
+    save();
+    toast('Insight gerado e salvo no histórico');
+  }catch(err){
+    respEl.innerHTML = `<div style="color:var(--danger)"><strong>Erro:</strong> ${escapeHtml(err.message)}</div><div style="font-size:12px;color:var(--text-dim);margin-top:10px">Verifique sua API key, créditos disponíveis ou tente outro provedor. Se for CORS bloqueado pelo Anthropic, tente OpenAI ou Gemini.</div>`;
+  }finally{
+    document.getElementById('runCustom').disabled = false;
+  }
+});
+
+// ============= SETUP MODAL =============
+document.getElementById('openSetup').addEventListener('click', ()=>{
+  const cfg = state.apiConfig;
+  const provOpts = Object.entries(PROVIDERS).map(([k,p])=>`<option value="${k}" ${cfg.provider===k?'selected':''}>${p.label}</option>`).join('');
+  openModal(`
+    <h3>⚙ Configurar IA</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Escolha o provedor, cole sua API key. Tudo fica salvo apenas no seu navegador.</p>
+    <div class="form-grid">
+      <div class="form-group"><label>Provedor</label><select id="cfg-provider">${provOpts}</select></div>
+      <div class="form-group"><label>Modelo</label><select id="cfg-model"></select></div>
+      <div class="form-group" style="grid-column:1/-1"><label>API Key</label><input type="password" id="cfg-key" value="${escapeHtml(cfg.apiKey||'')}" placeholder="sk-... ou cole sua chave aqui" autocomplete="off"></div>
+      <div class="form-group" style="grid-column:1/-1"><p style="font-size:11px;color:var(--text-muted)" id="cfg-hint"></p></div>
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:14px;line-height:1.5">
+      <strong>Privacidade:</strong> sua chave fica APENAS no localStorage do seu navegador. Nem o Netlify, nem ninguém vê. Cada chamada de IA vai direto da sua máquina pra API do provedor escolhido.
+    </p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn" id="cfg-clear">Limpar chave</button>
+      <button class="btn btn-primary" id="cfg-save">Salvar</button>
+    </div>
+  `);
+  function refreshModelOpts(){
+    const p = document.getElementById('cfg-provider').value;
+    const opts = PROVIDERS[p].models.map(m=>`<option value="${m.id}" ${cfg.model===m.id?'selected':''}>${m.label}</option>`).join('');
+    document.getElementById('cfg-model').innerHTML = opts;
+    document.getElementById('cfg-hint').textContent = PROVIDERS[p].keyHint;
+  }
+  refreshModelOpts();
+  document.getElementById('cfg-provider').addEventListener('change', refreshModelOpts);
+  document.getElementById('cfg-save').addEventListener('click',()=>{
+    state.apiConfig.provider = document.getElementById('cfg-provider').value;
+    state.apiConfig.model = document.getElementById('cfg-model').value;
+    state.apiConfig.apiKey = document.getElementById('cfg-key').value.trim();
+    save(); updateApiStatus();
+    closeModal();
+    toast(state.apiConfig.apiKey?'IA configurada':'Configuração salva (sem chave)');
+    if(document.querySelector('.tab.active').dataset.panel==='ai') renderAI();
+  });
+  document.getElementById('cfg-clear').addEventListener('click',()=>{
+    state.apiConfig.apiKey='';
+    save(); updateApiStatus();
+    closeModal(); toast('Chave removida');
+  });
+});
+
+// ============= TEMPLATES =============
+const MESSAGE_TEMPLATES = [
+  {channel:'wa',title:'Reativação de lead frio',vars:['{nome}','{tempo_sem_falar}'],body:`Oi {nome}! Estava revisando aqui e lembrei da gente. Faz {tempo_sem_falar} desde a última conversa.\n\nEm que pé tá aí no marketing? Topa um café virtual de 15min essa semana? Sem pitch, só pra entender como você está e ver se faz sentido a gente conversar agora.\n\nMe avisa um dia que funciona pra você.`},
+  {channel:'wa',title:'Upsell pra cliente atual',vars:['{nome}','{servico_atual}','{nova_oferta}'],body:`{nome}, tudo bem? Tô olhando aqui o resultado nosso ({servico_atual}) e percebi que faz sentido a gente subir o nível.\n\nTô criando um pacote que adiciona {nova_oferta} — acho que destrava a próxima fase do seu negócio.\n\nQue tal a gente conversar 20min essa semana pra eu te apresentar? Sem compromisso, só pra você ver se faz sentido pro seu momento.`},
+  {channel:'ig',title:'Pitch inicial Instagram (frio)',vars:['{nome}','{empresa}','{ponto_observado}'],body:`Oi {nome}! Vi seu perfil/{empresa} e achei interessante {ponto_observado}.\n\nTrabalho com posicionamento e marketing pra negócios como o seu — me chamou atenção o que você está fazendo.\n\nNão vou enrolar: tem uns 15min essa semana pra eu te mostrar 2-3 ideias que vejo de cara que podem destravar mais resultado? Sem pitch, sem compromisso, é genuinamente só conversar.`},
+  {channel:'li',title:'Pitch LinkedIn (B2B)',vars:['{nome}','{cargo}','{empresa}'],body:`{nome}, vi seu trabalho como {cargo} em {empresa}. Trabalho com marketing pra empresas no estágio que vocês estão e queria trocar uma ideia.\n\nNão é venda fria — sou estrategista de marketing, e queria entender como vocês estão estruturando a parte de aquisição/posicionamento. Talvez eu tenha algo pra agregar; talvez não.\n\nVocê tem 20min nessa semana pra um papo objetivo?`},
+  {channel:'wa',title:'Pedido de indicação',vars:['{nome}','{tempo_de_parceria}'],body:`{nome}, tudo certo?\n\nDe {tempo_de_parceria} pra cá, a gente vem construindo uma parceria boa. E hoje eu queria pedir uma coisa direta: você conhece alguém que possa se beneficiar do que a gente faz?\n\nSe vier alguém de você, faço questão de dar um benefício pra você (X% de desconto na sua mensalidade, ou tempo extra de algum serviço). Me indica que eu cuido do resto.`},
+  {channel:'email',title:'E-mail pra reuniões agendadas',vars:['{nome}','{data}','{hora}','{link_meet}'],body:`Oi {nome}, tudo bem?\n\nConfirmando nossa reunião em {data} às {hora}. Aqui é o link: {link_meet}\n\nPra a gente aproveitar bem os 30min, vou chegar com algumas perguntas focadas em entender:\n1. Onde você está hoje (volume, ticket, canais)\n2. Onde quer chegar (3-6 meses)\n3. O que falta no caminho\n\nA partir disso, te apresento se faz sentido a gente trabalhar junto. Combinado?\n\nUm abraço,`},
+  {channel:'wa',title:'Recuperação pós-objeção de preço',vars:['{nome}'],body:`Oi {nome}, tudo bem?\n\nFiquei pensando aqui na nossa conversa. Você levantou o ponto do investimento, e isso é justo.\n\nDeixa eu te perguntar: e se a gente começasse com um escopo menor, focado SÓ em destravar a primeira frente (a mais crítica pra você agora)? Aí você testa o trabalho e a gente expande quando fizer sentido.\n\nVale conversar 10min sobre isso?`},
+];
+
+function renderTemplates(){
+  const wrap = document.getElementById('templatesList');
+  wrap.innerHTML='';
+  MESSAGE_TEMPLATES.forEach(t=>{
+    const channelLabels = {wa:'WhatsApp',ig:'Instagram',li:'LinkedIn',email:'E-mail'};
+    const card = document.createElement('div');
+    card.className='tpl-card';
+    card.innerHTML = `
+      <div class="tpl-head">
+        <div class="tpl-title">${t.title}</div>
+        <span class="tpl-channel ${t.channel}">${channelLabels[t.channel]}</span>
+      </div>
+      <div class="tpl-vars">Variáveis: ${t.vars.map(v=>`<code>${v}</code>`).join(' ')}</div>
+      <div class="tpl-body">${escapeHtml(t.body)}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-sm btn-primary" data-personalize='${escapeHtml(JSON.stringify(t))}'>Personalizar</button>
+        <button class="btn btn-sm" data-copy='${escapeHtml(t.body)}'>📋 Copiar bruto</button>
+      </div>
+    `;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll('[data-copy]').forEach(b=> b.addEventListener('click',()=>{
+    navigator.clipboard.writeText(b.dataset.copy);
+    toast('Copiado pra área de transferência');
+  }));
+  wrap.querySelectorAll('[data-personalize]').forEach(b=> b.addEventListener('click',()=>{
+    const t = JSON.parse(b.dataset.personalize);
+    personalizeTemplate(t);
+  }));
+}
+
+function personalizeTemplate(t){
+  const inputs = t.vars.map((v,i)=>`<div class="form-group" style="grid-column:1/-1"><label>${v}</label><input type="text" id="tvar-${i}" placeholder="Substituir por..."></div>`).join('');
+  openModal(`
+    <h3>Personalizar: ${t.title}</h3>
+    <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px">Preencha os campos abaixo pra substituir as variáveis no template.</p>
+    <div class="form-grid">${inputs}</div>
+    <div id="tpl-preview" style="margin-top:14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:13px;line-height:1.65;white-space:pre-wrap"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="tpl-copy">📋 Copiar mensagem final</button>
+    </div>
+  `);
+  function update(){
+    let out = t.body;
+    t.vars.forEach((v,i)=>{
+      const val = document.getElementById('tvar-'+i).value || v;
+      out = out.split(v).join(val);
+    });
+    document.getElementById('tpl-preview').textContent = out;
+  }
+  t.vars.forEach((v,i)=> document.getElementById('tvar-'+i).addEventListener('input', update));
+  update();
+  document.getElementById('tpl-copy').addEventListener('click',()=>{
+    navigator.clipboard.writeText(document.getElementById('tpl-preview').textContent);
+    toast('Mensagem copiada!');
+    closeModal();
+  });
+}
+
+// ============= HISTORY =============
+function renderHistory(){
+  const wrap = document.getElementById('historyList');
+  wrap.innerHTML='';
+  document.getElementById('histSummary').textContent = `${state.history.length} insights gerados`;
+  if(!state.history.length){
+    wrap.innerHTML = `<div class="empty-state"><div class="icon">📜</div>Nenhum insight gerado ainda. Vá pra aba "Estratégia com IA" pra começar.</div>`;
+    return;
+  }
+  state.history.forEach(h=>{
+    const div = document.createElement('div');
+    div.className='hist-item';
+    div.innerHTML = `
+      <div class="hist-head">
+        <div class="hist-title">${escapeHtml(h.prompt.slice(0,80))}${h.prompt.length>80?'...':''}</div>
+        <div class="hist-date">${new Date(h.timestamp).toLocaleString('pt-BR')}</div>
+      </div>
+      <div class="hist-preview">${escapeHtml(h.response.slice(0,200))}${h.response.length>200?'...':''}</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-sm" data-view="${h.id}">Ver completo</button>
+        <button class="btn btn-sm" data-copy-hist="${h.id}">📋 Copiar</button>
+        <button class="btn btn-sm btn-danger" data-del-hist="${h.id}">Excluir</button>
+      </div>
+    `;
+    wrap.appendChild(div);
+  });
+  wrap.querySelectorAll('[data-view]').forEach(b=> b.addEventListener('click',()=>{
+    const h = state.history.find(x=>x.id===b.dataset.view); if(!h) return;
+    openModal(`
+      <h3>Insight de ${new Date(h.timestamp).toLocaleString('pt-BR')}</h3>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:6px">Modelo: ${h.provider}/${h.model}</p>
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px;font-size:13px;line-height:1.55"><strong>Pergunta:</strong> ${escapeHtml(h.prompt)}</div>
+      <div class="ai-response" style="max-height:60vh">${renderMarkdown(h.response)}</div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">Fechar</button>
+        <button class="btn btn-primary" onclick="navigator.clipboard.writeText(${JSON.stringify(h.response)});window.showToastCopied&&window.showToastCopied()">📋 Copiar resposta</button>
+      </div>
+    `);
+  }));
+  wrap.querySelectorAll('[data-copy-hist]').forEach(b=> b.addEventListener('click',()=>{
+    const h = state.history.find(x=>x.id===b.dataset.copyHist);
+    if(h){ navigator.clipboard.writeText(h.response); toast('Copiado'); }
+  }));
+  wrap.querySelectorAll('[data-del-hist]').forEach(b=> b.addEventListener('click',()=>{
+    state.history = state.history.filter(x=>x.id!==b.dataset.delHist);
+    save(); renderHistory(); toast('Excluído');
+  }));
+}
+window.showToastCopied = ()=> toast('Resposta copiada');
+
+document.getElementById('clearHistory').addEventListener('click',()=>{
+  if(!state.history.length) return;
+  if(confirm('Apagar todo o histórico de insights?')){
+    state.history = []; save(); renderHistory(); toast('Histórico limpo');
+  }
+});
+
+// ============= INIT =============
+load();
+updateApiStatus();
+renderDiagnostic();
+</script>
+</body>
+</html>

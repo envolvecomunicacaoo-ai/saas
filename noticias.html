@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="sync.js"></script>
+<title>Envolve · Notícias de Marketing</title>
+<style>
+  :root{
+    --bg:#0a0e1a; --surface:#111827; --surface-2:#1a2233; --border:#252f44;
+    --text:#e8ecf3; --text-dim:#8b95a8; --text-muted:#5c6680;
+    --accent:#06b6d4; --accent-2:#0891b2;
+    --success:#10b981; --warning:#f59e0b; --danger:#ef4444;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;background-image:radial-gradient(circle at 100% 0%,rgba(6,182,212,.10),transparent 50%),radial-gradient(circle at 0% 100%,rgba(132,204,22,.06),transparent 50%);background-attachment:fixed}
+  .app{max-width:1400px;margin:0 auto;padding:24px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:14px}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#84cc16);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:white}
+  .brand h1{font-size:18px;font-weight:600;letter-spacing:-.01em}
+  .brand p{font-size:12px;color:var(--text-dim);margin-top:2px}
+  .header-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .badge{font-size:11px;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim)}
+  .badge.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:6px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px}
+
+  .btn{padding:10px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);cursor:pointer;font-weight:500;font-size:13px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:#222e44;border-color:#3a4660}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#84cc16);border-color:transparent;color:white}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-sm{padding:6px 12px;font-size:12px}
+  .btn-ghost{background:transparent}
+
+  .filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+  .filters select,.filters input{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-size:13px;font-family:inherit}
+  .filters input[type=text]{flex:1;min-width:200px}
+
+  .news-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+  .news-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;border-left:3px solid var(--c-source,var(--accent));transition:all .15s}
+  .news-card:hover{transform:translateY(-2px);border-color:#3a4660}
+  .news-thumb{width:100%;aspect-ratio:16/9;border-radius:8px;background:var(--surface-2) center/cover no-repeat}
+  .news-source{display:flex;align-items:center;justify-content:space-between;gap:6px}
+  .news-source .src{font-size:10px;color:white;background:var(--c-source,var(--accent));padding:2px 8px;border-radius:99px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+  .news-source .date{font-size:11px;color:var(--text-muted)}
+  .news-title{font-size:14px;font-weight:600;line-height:1.4;letter-spacing:-.01em}
+  .news-title a{color:var(--text);text-decoration:none}
+  .news-title a:hover{color:var(--accent)}
+  .news-desc{font-size:12px;color:var(--text-dim);line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+  .news-actions{display:flex;gap:6px;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid var(--border)}
+  .news-actions a{font-size:11px;color:var(--accent);text-decoration:none;font-weight:500}
+  .news-actions a:hover{text-decoration:underline}
+
+  .source-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .source-pill{font-size:11px;padding:5px 12px;border-radius:99px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);cursor:pointer;font-family:inherit;font-weight:500;transition:all .15s}
+  .source-pill:hover{color:var(--text);border-color:#3a4660}
+  .source-pill.active{background:var(--accent);color:white;border-color:transparent}
+
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);padding:12px 18px;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.3);font-size:13px;font-weight:500;transform:translateY(120%);transition:.25s ease;z-index:300}
+  .toast.show{transform:translateY(0)}
+  .toast.success{border-color:var(--success)}
+  .toast.error{border-color:var(--danger)}
+
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
+  .modal-bg.show{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:700px;width:90%;max-height:90vh;overflow-y:auto}
+  .modal h3{font-size:16px;margin-bottom:14px;font-weight:600}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+  .modal-content{font-size:14px;line-height:1.7;white-space:pre-wrap;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:16px}
+
+  .empty-state{text-align:center;padding:50px 20px;color:var(--text-dim)}
+  .empty-state .icon{font-size:36px;margin-bottom:12px}
+
+  .loading{display:inline-block;width:14px;height:14px;border:2px solid var(--text-dim);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite;vertical-align:middle;margin-right:6px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  @media(max-width:768px){
+    .app{padding:14px}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">📰</div>
+      <div>
+        <h1>Envolve · Notícias de Marketing</h1>
+        <p>Agregador de fontes · combustível pra criar conteúdo</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="./" style="font-size:12px;padding:6px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);text-decoration:none;display:inline-flex;align-items:center;gap:6px">← Envolve</a>
+      <span class="badge live" id="updateBadge">Atualizando...</span>
+      <button class="btn btn-sm" id="refreshBtn">↻ Atualizar</button>
+      <button class="btn btn-sm" id="manageSources">⚙ Fontes</button>
+    </div>
+  </header>
+
+  <div class="card" style="padding:14px">
+    <div class="filters">
+      <input type="text" id="searchInput" placeholder="🔍 Buscar nas notícias..." />
+      <select id="sortBy">
+        <option value="date">Mais recentes</option>
+        <option value="source">Por fonte</option>
+      </select>
+      <span style="font-size:12px;color:var(--text-dim);margin-left:auto" id="newsCount"></span>
+    </div>
+    <div class="source-pills" id="sourcePills"></div>
+  </div>
+
+  <div id="newsGrid" class="news-grid"></div>
+</div>
+
+<div class="modal-bg" id="modal"><div class="modal" id="modalContent"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'envolve.noticias.v1';
+const RSS2JSON = 'https://api.rss2json.com/v1/api.json?rss_url=';
+
+// Fontes pré-configuradas (RSS feeds)
+const DEFAULT_SOURCES = [
+  {id:'meio',     name:'Meio & Mensagem',    url:'https://www.meioemensagem.com.br/feed', color:'#ef4444', country:'BR'},
+  {id:'proxxima', name:'ProXXIma',           url:'https://www.proxxima.com.br/feed',      color:'#f59e0b', country:'BR'},
+  {id:'mundo',    name:'Mundo do Marketing', url:'https://www.mundodomarketing.com.br/feed',color:'#7c5cff', country:'BR'},
+  {id:'adnews',   name:'Adnews',             url:'https://adnews.com.br/feed',            color:'#ec4899', country:'BR'},
+  {id:'rd',       name:'RD Marketing',       url:'https://resultadosdigitais.com.br/marketing/feed', color:'#10b981', country:'BR'},
+  {id:'rock',     name:'Rock Content',       url:'https://rockcontent.com/br/blog/feed/', color:'#06b6d4', country:'BR'},
+  {id:'sej',      name:'Search Engine Journal', url:'https://www.searchenginejournal.com/feed/', color:'#0A66C2', country:'EN'},
+  {id:'hubspot',  name:'HubSpot Marketing',  url:'https://blog.hubspot.com/marketing/rss.xml', color:'#FF7A59', country:'EN'},
+  {id:'mktland',  name:'Marketing Land',     url:'https://martech.org/feed/',             color:'#84cc16', country:'EN'},
+  {id:'mktbrew',  name:'Marketing Brew',     url:'https://www.marketingbrew.com/stories.rss',color:'#a855f7', country:'EN'},
+];
+
+let state = { sources:[], items:[], lastFetch:'', activeFilter:'all' };
+
+function load(){
+  try{ Object.assign(state, JSON.parse(localStorage.getItem(STORAGE_KEY))||{}); }catch(e){}
+  if(!state.sources || !state.sources.length) state.sources = JSON.parse(JSON.stringify(DEFAULT_SOURCES));
+  if(!state.items) state.items = [];
+}
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function getJSON(key){ try{ return JSON.parse(localStorage.getItem(key)||'null'); }catch(e){ return null; } }
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function stripHtml(s){ const div=document.createElement('div'); div.innerHTML=s||''; return div.textContent||''; }
+function toast(msg,type='success'){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>t.classList.remove('show'),3000); }
+function openModal(html){ document.getElementById('modalContent').innerHTML=html; document.getElementById('modal').classList.add('show'); }
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
+
+function timeAgo(dateStr){
+  const d = new Date(dateStr); if(isNaN(d)) return '';
+  const min = Math.floor((Date.now()-d.getTime())/60000);
+  if(min<60) return min+' min atrás';
+  if(min<1440) return Math.floor(min/60)+'h atrás';
+  return Math.floor(min/1440)+'d atrás';
+}
+
+async function fetchAllSources(){
+  const badge = document.getElementById('updateBadge');
+  badge.textContent = 'Buscando notícias...';
+  const allItems = [];
+  await Promise.all(state.sources.map(async src=>{
+    try{
+      const res = await fetch(RSS2JSON+encodeURIComponent(src.url));
+      const data = await res.json();
+      if(data.status==='ok' && data.items){
+        data.items.slice(0,15).forEach(it=>{
+          allItems.push({
+            id: src.id+'-'+(it.guid||it.link),
+            sourceId: src.id,
+            sourceName: src.name,
+            sourceColor: src.color,
+            country: src.country,
+            title: it.title,
+            link: it.link,
+            description: stripHtml(it.description||it.content||'').slice(0,300),
+            content: it.content||it.description||'',
+            pubDate: it.pubDate,
+            thumbnail: it.thumbnail || extractThumb(it.content||it.description||'')
+          });
+        });
+      }
+    }catch(err){
+      console.warn('Falha em', src.name, err.message);
+    }
+  }));
+  // dedup por link
+  const map = {};
+  allItems.forEach(it=>{ if(!map[it.link]) map[it.link]=it; });
+  state.items = Object.values(map).sort((a,b)=> new Date(b.pubDate)-new Date(a.pubDate));
+  state.lastFetch = new Date().toISOString();
+  save();
+  badge.textContent = 'Atualizado · ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  render();
+}
+
+function extractThumb(html){
+  const m = (html||'').match(/<img[^>]+src=["']([^"']+)["']/i);
+  return m ? m[1] : '';
+}
+
+function render(){
+  // Source pills
+  const pills = document.getElementById('sourcePills');
+  const counts = {};
+  state.items.forEach(i=>{ counts[i.sourceId] = (counts[i.sourceId]||0)+1; });
+  pills.innerHTML = `<button class="source-pill ${state.activeFilter==='all'?'active':''}" data-src="all">Todas (${state.items.length})</button>` +
+    state.sources.map(s=> `<button class="source-pill ${state.activeFilter===s.id?'active':''}" data-src="${s.id}" style="${state.activeFilter===s.id?'background:'+s.color:''}">${escapeHtml(s.name)}${counts[s.id]?` (${counts[s.id]})`:''}</button>`).join('');
+  pills.querySelectorAll('[data-src]').forEach(b=> b.addEventListener('click',()=>{ state.activeFilter = b.dataset.src; save(); render(); }));
+
+  // News grid
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const sortBy = document.getElementById('sortBy').value;
+  let filtered = state.items.filter(i=>{
+    if(state.activeFilter!=='all' && i.sourceId!==state.activeFilter) return false;
+    if(search){
+      const hay = (i.title+' '+i.description+' '+i.sourceName).toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+  if(sortBy==='source') filtered.sort((a,b)=> a.sourceName.localeCompare(b.sourceName) || (new Date(b.pubDate)-new Date(a.pubDate)));
+  else filtered.sort((a,b)=> new Date(b.pubDate)-new Date(a.pubDate));
+
+  document.getElementById('newsCount').textContent = `${filtered.length} de ${state.items.length} matérias`;
+
+  const grid = document.getElementById('newsGrid');
+  if(!filtered.length){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><div class="icon">📰</div>${state.items.length===0?'Carregando notícias...':'Nenhuma matéria com esse filtro.'}</div>`;
+    return;
+  }
+  grid.innerHTML = '';
+  filtered.forEach(it=>{
+    const card = document.createElement('div');
+    card.className='news-card';
+    card.style.setProperty('--c-source', it.sourceColor);
+    card.innerHTML = `
+      ${it.thumbnail?`<div class="news-thumb" style="background-image:url('${escapeHtml(it.thumbnail)}')"></div>`:''}
+      <div class="news-source">
+        <span class="src" style="background:${it.sourceColor}">${escapeHtml(it.sourceName)}</span>
+        <span class="date">${timeAgo(it.pubDate)}</span>
+      </div>
+      <h3 class="news-title"><a href="${escapeHtml(it.link)}" target="_blank" rel="noopener">${escapeHtml(it.title)}</a></h3>
+      <p class="news-desc">${escapeHtml(it.description)}</p>
+      <div class="news-actions">
+        <a href="${escapeHtml(it.link)}" target="_blank" rel="noopener">Ler completo →</a>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-sm btn-ghost" data-idea="${escapeHtml(it.id)}" title="Gerar ideia de conteúdo">💡 Ideia</button>
+          <button class="btn btn-sm btn-ghost" data-copy="${escapeHtml(it.id)}" title="Copiar título e link">📋</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+  grid.querySelectorAll('[data-idea]').forEach(b=> b.addEventListener('click',()=>{
+    const it = state.items.find(x=>x.id===b.dataset.idea);
+    if(it) generateIdeaFromNews(it);
+  }));
+  grid.querySelectorAll('[data-copy]').forEach(b=> b.addEventListener('click',()=>{
+    const it = state.items.find(x=>x.id===b.dataset.copy);
+    if(it){ navigator.clipboard.writeText(`${it.title}\n${it.link}`); toast('Copiado!'); }
+  }));
+}
+
+function generateIdeaFromNews(item){
+  // Verifica se IA está configurada
+  const insightsState = getJSON('envolve.insights.v1') || {};
+  const cfg = insightsState.apiConfig;
+  if(!cfg || !cfg.apiKey){
+    openModal(`
+      <h3>💡 Ideia de conteúdo a partir da notícia</h3>
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Pra usar IA, configure sua chave em <a href="insights.html" style="color:var(--accent)">Insights & IA</a> primeiro.</p>
+      <p style="font-size:13px;margin-bottom:10px"><strong>Notícia:</strong></p>
+      <div class="modal-content" style="font-size:13px">${escapeHtml(item.title)}\n\n${escapeHtml(item.description)}\n\nLink: ${escapeHtml(item.link)}</div>
+      <div style="font-size:12px;color:var(--text-dim);margin-top:14px;background:var(--surface-2);border-radius:8px;padding:12px;line-height:1.6">
+        <strong>Sugestão manual de ângulos:</strong><br>
+        • <strong>Reação contrária</strong> — discorde e dê seu ponto de vista<br>
+        • <strong>Caso prático</strong> — relacione com algo da sua experiência ou de cliente<br>
+        • <strong>Tradução pra PMEs</strong> — o que isso significa pro pequeno negócio<br>
+        • <strong>Lista de aprendizados</strong> — 3-5 takeaways acionáveis<br>
+        • <strong>Pergunta gancho</strong> — provoque audiência ("Você concorda?")
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeModal()">Fechar</button>
+        <a class="btn btn-primary" href="insights.html">Configurar IA</a>
+      </div>
+    `);
+    return;
+  }
+  // IA configurada — chamar
+  openModal(`
+    <h3>💡 Gerando ideias de conteúdo...</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">A IA está pensando em ângulos pra você criar conteúdo a partir desta notícia.</p>
+    <div class="modal-content" id="ai-content"><span class="loading"></span> Pensando...</div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Fechar</button>
+      <button class="btn" id="copy-result" disabled>📋 Copiar</button>
+    </div>
+  `);
+  callAI(item, cfg).then(text=>{
+    document.getElementById('ai-content').textContent = text;
+    const btn = document.getElementById('copy-result');
+    btn.disabled = false;
+    btn.addEventListener('click',()=>{ navigator.clipboard.writeText(text); toast('Copiado'); });
+  }).catch(err=>{
+    document.getElementById('ai-content').innerHTML = `<span style="color:var(--danger)"><strong>Erro:</strong> ${escapeHtml(err.message)}</span>`;
+  });
+}
+
+async function callAI(item, cfg){
+  const SYSTEM = `Você é um Estrategista Sênior de Marketing e Growth. Sua função é transformar notícias do setor em ideias acionáveis de conteúdo pra um marketeiro brasileiro criar posts em LinkedIn, Instagram e Reels. Sempre responda em português do Brasil, tom executivo e direto.`;
+  const userPrompt = `Notícia:\nTítulo: ${item.title}\nResumo: ${item.description}\nFonte: ${item.sourceName}\n\nGere 3 ideias de conteúdo (1 LinkedIn, 1 Instagram Reel, 1 Carrossel) baseadas nessa notícia. Pra cada ideia, traga:\n1) Gancho/headline (1 linha forte)\n2) Ângulo (qual a opinião ou ponto de vista)\n3) Estrutura sugerida (bullets do que vai dentro)\n4) CTA\n\nQuero conteúdo que funcione pra um marketeiro/agência falando com PMEs. Use markdown leve.`;
+
+  const provider = cfg.provider, key = cfg.apiKey, model = cfg.model;
+  if(provider==='claude'){
+    const res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:1500,system:SYSTEM,messages:[{role:'user',content:userPrompt}]})});
+    if(!res.ok) throw new Error((await res.text()).slice(0,200));
+    const j = await res.json();
+    return j.content?.[0]?.text || '';
+  }
+  if(provider==='openai'){
+    const res = await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'content-type':'application/json','authorization':'Bearer '+key},body:JSON.stringify({model,messages:[{role:'system',content:SYSTEM},{role:'user',content:userPrompt}],max_tokens:1500})});
+    if(!res.ok) throw new Error((await res.text()).slice(0,200));
+    const j = await res.json();
+    return j.choices?.[0]?.message?.content || '';
+  }
+  if(provider==='gemini'){
+    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({systemInstruction:{parts:[{text:SYSTEM}]},contents:[{role:'user',parts:[{text:userPrompt}]}],generationConfig:{maxOutputTokens:1500}})});
+    if(!res.ok) throw new Error((await res.text()).slice(0,200));
+    const j = await res.json();
+    return j.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  }
+}
+
+document.getElementById('refreshBtn').addEventListener('click', fetchAllSources);
+document.getElementById('searchInput').addEventListener('input', render);
+document.getElementById('sortBy').addEventListener('change', render);
+
+document.getElementById('manageSources').addEventListener('click',()=>{
+  openModal(`
+    <h3>⚙ Gerenciar fontes</h3>
+    <p style="font-size:13px;color:var(--text-dim);margin-bottom:14px">Adicione/remova feeds RSS pra acompanhar.</p>
+    <div id="src-list" style="margin-bottom:14px"></div>
+    <h4 style="font-size:13px;margin:14px 0 8px">+ Adicionar novo feed</h4>
+    <div style="display:grid;grid-template-columns:1fr 2fr auto;gap:6px">
+      <input type="text" id="new-name" placeholder="Nome (ex: Meu Blog)" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-family:inherit">
+      <input type="text" id="new-url" placeholder="URL do RSS" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-family:inherit">
+      <button class="btn btn-primary btn-sm" id="src-add">+</button>
+    </div>
+    <p style="font-size:11px;color:var(--text-muted);margin-top:8px">Use o formato RSS/Atom. A maioria dos blogs tem em <code style="background:var(--surface-2);padding:1px 5px;border-radius:3px">/feed</code> ou <code style="background:var(--surface-2);padding:1px 5px;border-radius:3px">/rss</code>.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Fechar</button>
+      <button class="btn btn-primary" id="src-fetch">Atualizar agora</button>
+    </div>
+  `);
+  function refresh(){
+    document.getElementById('src-list').innerHTML = state.sources.map(s=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:6px;margin-bottom:4px;font-size:12px">
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:8px;height:8px;border-radius:50%;background:${s.color}"></span><strong>${escapeHtml(s.name)}</strong><span style="color:var(--text-dim)">${escapeHtml(s.url)}</span></div>
+        <button class="btn btn-sm btn-ghost" data-rm-src="${s.id}" style="color:var(--danger)">×</button>
+      </div>
+    `).join('');
+    document.querySelectorAll('[data-rm-src]').forEach(b=> b.addEventListener('click',()=>{
+      state.sources = state.sources.filter(s=>s.id!==b.dataset.rmSrc); save(); refresh();
+    }));
+  }
+  refresh();
+  document.getElementById('src-add').addEventListener('click',()=>{
+    const name = document.getElementById('new-name').value.trim();
+    const url = document.getElementById('new-url').value.trim();
+    if(!name || !url){ toast('Preencha nome e URL','error'); return; }
+    const colors = ['#7c5cff','#5b8cff','#ec4899','#06b6d4','#84cc16','#f97316','#a855f7','#14b8a6'];
+    state.sources.push({id:'custom-'+Date.now().toString(36), name, url, color:colors[state.sources.length%colors.length]});
+    save(); refresh();
+    document.getElementById('new-name').value=''; document.getElementById('new-url').value='';
+  });
+  document.getElementById('src-fetch').addEventListener('click',()=>{ closeModal(); fetchAllSources(); });
+});
+
+// INIT
+load();
+if(state.items && state.items.length>0){
+  render();
+  document.getElementById('updateBadge').textContent = 'Última: ' + (state.lastFetch?new Date(state.lastFetch).toLocaleString('pt-BR',{hour:'2-digit',minute:'2-digit'}):'—');
+}
+fetchAllSources();
+</script>
+</body>
+</html>

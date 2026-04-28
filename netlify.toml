@@ -1,0 +1,31 @@
+# Configuração de deploy do Envolve no Netlify
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+  # HTML estático + Netlify Functions
+  publish = "."
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+# Headers de segurança
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# Cache agressivo pros HTMLs (revalidação rápida)
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Redirect: se alguém acessar /envolve, manda pro index
+[[redirects]]
+  from = "/envolve"
+  to = "/"
+  status = 301

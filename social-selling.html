@@ -1,0 +1,1307 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="sync.js"></script>
+<title>Envolve · Social Selling</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<style>
+  :root{
+    --bg:#0a0e1a; --surface:#111827; --surface-2:#1a2233; --border:#252f44;
+    --text:#e8ecf3; --text-dim:#8b95a8; --text-muted:#5c6680;
+    --accent:#7c5cff; --accent-2:#5b8cff; --success:#10b981; --warning:#f59e0b; --danger:#ef4444;
+    --linkedin:#0A66C2; --instagram:#E4405F; --whatsapp:#25D366;
+    --conversion:#10b981; --content:#f59e0b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Inter",sans-serif;
+    background:var(--bg); color:var(--text); font-size:14px; line-height:1.5;
+    background-image:radial-gradient(circle at 20% 0%,rgba(124,92,255,.08),transparent 50%),
+                     radial-gradient(circle at 80% 100%,rgba(228,64,95,.06),transparent 50%);
+    background-attachment:fixed;
+  }
+  .app{max-width:1400px;margin:0 auto;padding:24px}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+  .brand{display:flex;align-items:center;gap:14px}
+  .logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#7c5cff,#E4405F);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:white}
+  .brand h1{font-size:18px;font-weight:600;letter-spacing:-.01em}
+  .brand p{font-size:12px;color:var(--text-dim);margin-top:2px}
+  .header-actions{display:flex;gap:8px;align-items:center}
+  .badge{font-size:11px;padding:4px 10px;border-radius:99px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim)}
+  .badge.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--success);margin-right:6px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+  nav.tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--surface);padding:4px;border-radius:12px;border:1px solid var(--border);width:fit-content;flex-wrap:wrap}
+  .tab{padding:8px 18px;border-radius:8px;cursor:pointer;color:var(--text-dim);font-weight:500;font-size:13px;border:none;background:transparent;transition:all .15s}
+  .tab:hover{color:var(--text)}
+  .tab.active{background:var(--surface-2);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.2)}
+
+  .panel{display:none;animation:fadeIn .2s ease}
+  .panel.active{display:block}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px}
+  .card h2{font-size:14px;font-weight:600;margin-bottom:14px;letter-spacing:-.01em;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .card h2 .sub{font-size:11px;color:var(--text-muted);font-weight:400;text-transform:uppercase;letter-spacing:.05em}
+  .card h2 .channel-icon{width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:11px;margin-right:8px}
+
+  /* ===== Entry ===== */
+  .entry-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:14px}
+  .channel-card{border-top:3px solid var(--c-channel,var(--accent))}
+  .field-row{display:grid;grid-template-columns:1fr 100px;gap:10px;align-items:center;padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.05)}
+  .field-row:last-child{border-bottom:none}
+  .field-row label{font-size:13px;color:var(--text-dim)}
+  .field-row label small{display:block;font-size:11px;color:var(--text-muted);margin-top:2px}
+  .field-row input{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:6px;font-size:14px;text-align:right;font-family:inherit;width:100%}
+  .field-row input:focus{outline:none;border-color:var(--c-channel,var(--accent));box-shadow:0 0 0 2px rgba(124,92,255,.15)}
+
+  .date-card{display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:14px}
+  .date-card label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em;font-weight:500}
+  .date-card input{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:8px;font-size:14px;font-family:inherit}
+  .date-card .summary{margin-left:auto;font-size:13px;color:var(--text-dim)}
+  .date-card .summary strong{color:var(--text)}
+
+  .form-actions{display:flex;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);align-items:center}
+
+  .btn{padding:10px 18px;border-radius:8px;border:1px solid var(--border);background:var(--surface-2);color:var(--text);cursor:pointer;font-weight:500;font-size:13px;font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{background:#222e44;border-color:#3a4660}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#E4405F);border-color:transparent;color:white}
+  .btn-primary:hover{filter:brightness(1.1)}
+  .btn-danger{background:transparent;color:var(--danger);border-color:rgba(239,68,68,.3)}
+  .btn-danger:hover{background:rgba(239,68,68,.1)}
+  .btn-ghost{background:transparent}
+
+  /* ===== KPIs ===== */
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px}
+  .kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--c-accent,var(--accent))}
+  .kpi-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+  .kpi-value{font-size:26px;font-weight:700;letter-spacing:-.02em}
+  .kpi-trend{font-size:11px;margin-top:6px;color:var(--text-muted)}
+
+  /* ===== Funnel ===== */
+  .funnel{display:flex;flex-direction:column;gap:8px;padding:8px 0}
+  .funnel-step{display:grid;grid-template-columns:120px 1fr 100px 80px;gap:12px;align-items:center;font-size:13px}
+  .funnel-step .label{color:var(--text-dim);font-size:12px}
+  .funnel-step .bar-wrap{height:32px;background:var(--surface-2);border-radius:6px;overflow:hidden;position:relative;border:1px solid var(--border)}
+  .funnel-step .bar{height:100%;background:linear-gradient(90deg,var(--c-step,var(--accent)),var(--c-step-2,var(--accent-2)));display:flex;align-items:center;padding:0 10px;font-weight:600;font-size:13px;color:white;transition:width .5s ease}
+  .funnel-step .value{font-weight:700;text-align:right}
+  .funnel-step .conv{font-size:11px;color:var(--success);text-align:right}
+  .funnel-step .conv.bad{color:var(--warning)}
+
+  /* ===== Charts ===== */
+  .chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:14px;margin-bottom:14px}
+  .chart-wrap{position:relative;height:280px}
+  .chart-wrap.tall{height:340px}
+
+  /* ===== Goals ===== */
+  .goal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
+  .goal-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
+  .goal-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+  .goal-header .name{font-size:13px;font-weight:600}
+  .goal-header .pct{font-size:18px;font-weight:700}
+  .goal-progress{height:10px;background:var(--surface-2);border-radius:6px;overflow:hidden;margin-bottom:8px}
+  .goal-progress .fill{height:100%;background:linear-gradient(90deg,var(--c-goal,var(--accent)),var(--c-goal-2,var(--accent-2)));transition:width .4s}
+  .goal-meta{display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim)}
+
+  /* ===== Table ===== */
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+  table{width:100%;border-collapse:collapse;font-size:13px;min-width:1400px}
+  thead{background:var(--surface-2);position:sticky;top:0;z-index:1}
+  th{padding:11px 8px;text-align:right;font-weight:600;color:var(--text-dim);font-size:10px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--border);white-space:nowrap}
+  th:first-child,td:first-child{text-align:left;padding-left:14px}
+  td{padding:8px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+  tbody tr:hover{background:rgba(255,255,255,.02)}
+  td.weekend{color:var(--text-muted);font-style:italic}
+  td.editable{cursor:text;border-radius:4px;transition:background .12s}
+  td.editable:hover{background:rgba(124,92,255,.08)}
+  td.editable:focus{outline:1px solid var(--accent);background:rgba(124,92,255,.1)}
+  td.has-value{color:var(--text);font-weight:500}
+  td.zero{color:var(--text-muted)}
+  th.group-li{border-top:2px solid var(--linkedin)}
+  th.group-ig{border-top:2px solid var(--instagram)}
+  th.group-wa{border-top:2px solid var(--whatsapp)}
+  th.group-cv{border-top:2px solid var(--conversion)}
+  th.group-ct{border-top:2px solid var(--content)}
+
+  /* ===== Filters ===== */
+  .filters{display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+  .filters select,.filters input[type=number]{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer}
+
+  /* ===== Toast ===== */
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border);padding:12px 18px;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.3);display:flex;gap:8px;align-items:center;font-size:13px;font-weight:500;transform:translateY(120%);transition:transform .25s ease;z-index:100}
+  .toast.show{transform:translateY(0)}
+  .toast.success{border-color:var(--success)}
+  .toast.success::before{content:"✓";color:var(--success);font-weight:700}
+  .toast.error{border-color:var(--danger)}
+  .toast.error::before{content:"!";color:var(--danger);font-weight:700}
+
+  .file-input-wrap{position:relative;display:inline-flex}
+  .file-input-wrap input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+  /* ===== Lead cards ===== */
+  .lead-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
+  .lead-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;border-left:3px solid var(--c-status,var(--accent));transition:all .15s;display:flex;flex-direction:column;gap:10px}
+  .lead-card:hover{border-color:#3a4660;transform:translateY(-1px)}
+  .lead-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .lead-name{font-size:15px;font-weight:600;letter-spacing:-.01em}
+  .lead-status{font-size:10px;padding:3px 9px;border-radius:99px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:white;background:var(--c-status,var(--accent));white-space:nowrap}
+  .lead-contacts{display:flex;flex-direction:column;gap:6px;font-size:13px}
+  .lead-contact{display:flex;align-items:center;gap:8px;color:var(--text-dim);text-decoration:none;transition:color .15s;padding:4px 0}
+  .lead-contact:hover{color:var(--text)}
+  .lead-contact .ico{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;color:white;flex-shrink:0;font-weight:700}
+  .lead-contact .ico.ig{background:linear-gradient(135deg,#E4405F,#fcb045)}
+  .lead-contact .ico.wa{background:#25D366}
+  .lead-note{font-size:12px;color:var(--text-dim);line-height:1.5;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px;white-space:pre-wrap;word-wrap:break-word}
+  .lead-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);padding-top:8px;border-top:1px solid var(--border)}
+  .lead-actions{display:flex;gap:6px;justify-content:flex-end}
+  .lead-actions button{background:transparent;border:1px solid var(--border);color:var(--text-dim);cursor:pointer;padding:5px 10px;border-radius:6px;font-size:12px;font-family:inherit;transition:all .12s}
+  .lead-actions button:hover{background:var(--surface-2);color:var(--text);border-color:#3a4660}
+  .lead-actions button.del:hover{color:var(--danger);border-color:rgba(239,68,68,.4)}
+  .lead-status-quick{display:flex;gap:4px;flex-wrap:wrap}
+  .lead-status-quick button{font-size:10px;padding:3px 8px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;font-family:inherit;transition:all .12s}
+  .lead-status-quick button:hover{color:var(--text);border-color:#3a4660}
+  .lead-status-quick button.active{background:var(--c-active,var(--accent));color:white;border-color:transparent}
+
+  /* ===== Modal ===== */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px)}
+  .modal-bg.show{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;max-width:560px;width:90%;max-height:90vh;overflow-y:auto}
+  .modal h3{font-size:16px;margin-bottom:14px;font-weight:600}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px}
+
+  .empty-state{text-align:center;padding:40px;color:var(--text-dim)}
+  .empty-state .icon{font-size:32px;margin-bottom:8px}
+
+  .channel-tag{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;color:white;text-transform:uppercase;letter-spacing:.05em}
+
+  @media(max-width:768px){
+    .app{padding:14px}
+    nav.tabs{overflow-x:auto;width:100%}
+    .kpi-value{font-size:20px}
+    .funnel-step{grid-template-columns:80px 1fr 60px}
+    .funnel-step .conv{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="logo">SS</div>
+      <div>
+        <h1>Envolve · Social Selling</h1>
+        <p>Sistema operacional de prospecção, engajamento e conversão</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="./" style="font-size:12px;padding:6px 12px;border-radius:8px;background:var(--surface);border:1px solid var(--border);color:var(--text-dim);text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all .15s" onmouseover="this.style.color='var(--text)';this.style.borderColor='#3a4660'" onmouseout="this.style.color='var(--text-dim)';this.style.borderColor='var(--border)'">← Envolve</a>
+      <span class="badge live" id="syncBadge">Sincronizado</span>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="tab active" data-panel="entry">Lançamento Diário</button>
+    <button class="tab" data-panel="leads">Leads</button>
+    <button class="tab" data-panel="dashboard">Dashboard</button>
+    <button class="tab" data-panel="goals">Metas</button>
+    <button class="tab" data-panel="history">Histórico</button>
+    <button class="tab" data-panel="data">Dados</button>
+  </nav>
+
+  <!-- ============ ENTRY ============ -->
+  <section class="panel active" id="panel-entry">
+    <div class="date-card">
+      <label>Data:</label>
+      <input type="date" id="entryDate">
+      <span class="summary" id="entrySummary"></span>
+    </div>
+
+    <div class="entry-grid">
+      <div class="card channel-card" style="--c-channel:var(--linkedin)">
+        <h2><span><span class="channel-icon" style="background:var(--linkedin)">in</span>LinkedIn</span><span class="sub">B2B</span></h2>
+        <div id="form-linkedin"></div>
+      </div>
+      <div class="card channel-card" style="--c-channel:var(--instagram)">
+        <h2><span><span class="channel-icon" style="background:var(--instagram)">IG</span>Instagram</span><span class="sub">Social</span></h2>
+        <div id="form-instagram"></div>
+      </div>
+      <div class="card channel-card" style="--c-channel:var(--whatsapp)">
+        <h2><span><span class="channel-icon" style="background:var(--whatsapp)">WA</span>WhatsApp</span><span class="sub">Direto</span></h2>
+        <div id="form-whatsapp"></div>
+      </div>
+    </div>
+
+    <div class="entry-grid">
+      <div class="card channel-card" style="--c-channel:var(--conversion)">
+        <h2><span><span class="channel-icon" style="background:var(--conversion)">$</span>Conversão & Vendas</span><span class="sub">resultado</span></h2>
+        <div id="form-conversao"></div>
+      </div>
+      <div class="card channel-card" style="--c-channel:var(--content)">
+        <h2><span><span class="channel-icon" style="background:var(--content)">▶</span>Conteúdo Publicado</span><span class="sub">autoral</span></h2>
+        <div id="form-conteudo"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
+      <div class="form-actions" style="margin-top:0;padding-top:0;border-top:none">
+        <button class="btn btn-primary" id="saveEntry">Salvar lançamento do dia</button>
+        <button class="btn btn-ghost" id="clearEntry">Limpar</button>
+        <span style="margin-left:auto;font-size:12px;color:var(--text-dim)" id="lastSaved"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LEADS ============ -->
+  <section class="panel" id="panel-leads">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+      <div>
+        <h2 style="font-size:18px;font-weight:600">Cadastro de Leads</h2>
+        <p style="font-size:13px;color:var(--text-dim);margin-top:4px" id="leadsSummary">—</p>
+      </div>
+      <button class="btn btn-primary" id="addLeadBtn">+ Novo lead</button>
+    </div>
+
+    <div class="card" style="padding:14px">
+      <div class="filters" style="margin-bottom:0">
+        <input type="text" id="leadSearch" placeholder="🔍 Buscar por nome, Instagram, WhatsApp ou nota..." style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px 12px;border-radius:8px;font-family:inherit;font-size:13px;flex:1;min-width:200px">
+        <select id="leadStatusFilter">
+          <option value="all">Todos os status</option>
+          <option value="novo">Novo</option>
+          <option value="conversa">Em conversa</option>
+          <option value="qualificado">Qualificado</option>
+          <option value="reuniao">Reunião agendada</option>
+          <option value="convertido">Convertido</option>
+          <option value="perdido">Perdido</option>
+        </select>
+        <select id="leadSourceFilter">
+          <option value="all">Todas as origens</option>
+          <option value="instagram">Instagram</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="indicacao">Indicação</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="leadsList" style="margin-top:14px"></div>
+  </section>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section class="panel" id="panel-dashboard">
+    <div class="filters">
+      <label style="font-size:12px;color:var(--text-dim)">Período:</label>
+      <select id="dashPeriod">
+        <option value="week">Esta semana</option>
+        <option value="month" selected>Mês atual</option>
+        <option value="last30">Últimos 30 dias</option>
+        <option value="ytd">Ano até hoje</option>
+        <option value="all">Tudo</option>
+      </select>
+    </div>
+
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h2>Funil de Conversão <span class="sub">no período</span></h2>
+      <div class="funnel" id="funnel"></div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="card">
+        <h2>Atividades por canal <span class="sub">total</span></h2>
+        <div class="chart-wrap"><canvas id="chartByChannel"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Evolução diária <span class="sub">prospecção × conversão</span></h2>
+        <div class="chart-wrap"><canvas id="chartDaily"></canvas></div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="card">
+        <h2>Mix de prospecção <span class="sub">por canal</span></h2>
+        <div class="chart-wrap"><canvas id="chartProspMix"></canvas></div>
+      </div>
+      <div class="card">
+        <h2>Conteúdo publicado <span class="sub">por formato</span></h2>
+        <div class="chart-wrap"><canvas id="chartContent"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GOALS ============ -->
+  <section class="panel" id="panel-goals">
+    <div class="filters">
+      <label style="font-size:12px;color:var(--text-dim)">Período da meta:</label>
+      <select id="goalPeriod">
+        <option value="week">Semanal</option>
+        <option value="month" selected>Mensal</option>
+      </select>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <h2>Defina suas metas <span class="sub">salvas automaticamente</span></h2>
+      <p style="font-size:12px;color:var(--text-dim);margin-bottom:14px">Defina quanto quer realizar no período. As barras abaixo mostram seu progresso real puxado dos lançamentos diários.</p>
+      <div class="goal-grid" id="goalsConfig"></div>
+    </div>
+
+    <div class="card">
+      <h2>Progresso atual</h2>
+      <div class="goal-grid" id="goalsProgress"></div>
+    </div>
+  </section>
+
+  <!-- ============ HISTORY ============ -->
+  <section class="panel" id="panel-history">
+    <div class="filters">
+      <label style="font-size:12px;color:var(--text-dim)">Mês:</label>
+      <select id="histMonth"></select>
+      <label style="font-size:12px;color:var(--text-dim);margin-left:8px">Ano:</label>
+      <select id="histYear"></select>
+      <span style="margin-left:auto;font-size:12px;color:var(--text-dim)" id="histSummary"></span>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap" style="border:none;border-radius:0;max-height:600px">
+        <table id="histTable">
+          <thead>
+            <tr id="histHeadGroup"></tr>
+            <tr id="histHead"></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <p style="font-size:12px;color:var(--text-dim);margin-top:10px">Dica: clique em qualquer célula numérica pra editar direto. Salva automaticamente.</p>
+  </section>
+
+  <!-- ============ DATA ============ -->
+  <section class="panel" id="panel-data">
+    <div class="card" style="margin-bottom:14px">
+      <h2>Exportar</h2>
+      <p style="color:var(--text-dim);margin-bottom:14px">Baixe seus dados em CSV (Excel/Sheets) ou JSON pra backup.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="exportCsv">Exportar CSV (atividades)</button>
+        <button class="btn" id="exportLeadsCsv">Exportar leads (CSV)</button>
+        <button class="btn" id="exportJson">Exportar JSON (backup completo)</button>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <h2>Importar</h2>
+      <p style="color:var(--text-dim);margin-bottom:14px">Importar JSON de backup. <strong>Atenção:</strong> sobrescreve dados existentes.</p>
+      <span class="file-input-wrap">
+        <button class="btn">Importar JSON</button>
+        <input type="file" id="importJson" accept=".json">
+      </span>
+    </div>
+    <div class="card">
+      <h2>Zona de risco</h2>
+      <p style="color:var(--text-dim);margin-bottom:14px">Apaga tudo. Faça backup antes.</p>
+      <button class="btn btn-danger" id="resetData">Apagar todos os dados</button>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="modal-bg" id="modal"><div class="modal" id="modalContent"></div></div>
+
+<script>
+// ============= CONFIG =============
+const CHANNELS = [
+  {key:'linkedin',  label:'LinkedIn',  color:'#0A66C2'},
+  {key:'instagram', label:'Instagram', color:'#E4405F'},
+  {key:'whatsapp',  label:'WhatsApp',  color:'#25D366'},
+];
+
+// Atividades por canal (mesmas pros 3, mas com labels específicos)
+const CHANNEL_ACTIVITIES = [
+  {key:'conexoes_enviadas', label:'Conexões/Solicitações enviadas',  hint:'cold outreach novo',     funnel:'top'},
+  {key:'conexoes_aceitas',  label:'Aceites / Seguidores conquistados', hint:'aceitou conectar',     funnel:'accepted'},
+  {key:'mensagens_iniciais', label:'Mensagens iniciais',                hint:'1ª msg após aceite',   funnel:'message'},
+  {key:'followups',         label:'Follow-ups',                          hint:'reaquecimento',        funnel:'message'},
+  {key:'respostas',         label:'Respostas recebidas',                 hint:'engajou em conversa',  funnel:'reply'},
+  {key:'curtidas',          label:'Curtidas estratégicas',               hint:'em posts de prospects',funnel:'engage'},
+  {key:'comentarios',       label:'Comentários',                         hint:'aporte de valor',      funnel:'engage'},
+  {key:'dms',               label:'DMs warm',                            hint:'já em relacionamento', funnel:'message'},
+];
+
+const CONVERSION_ACTIVITIES = [
+  {key:'reunioes_agendadas', label:'Reuniões agendadas',  hint:'no calendário',     funnel:'meeting_booked'},
+  {key:'reunioes_realizadas', label:'Reuniões realizadas', hint:'show-up confirmado',funnel:'meeting_done'},
+  {key:'propostas_enviadas', label:'Propostas enviadas',  hint:'pricing/contrato',  funnel:'proposal'},
+  {key:'vendas_qtd',         label:'Vendas fechadas (qtd)', hint:'contratos assinados',funnel:'sale'},
+  {key:'vendas_valor',       label:'Valor fechado (R$)',  hint:'soma do dia', isMoney:true, funnel:'sale_value'},
+];
+
+const CONTENT_ACTIVITIES = [
+  {key:'posts_publicados',  label:'Posts publicados',  hint:'feed/timeline'},
+  {key:'reels_publicados',  label:'Reels publicados',  hint:'vídeo curto'},
+  {key:'stories_publicados',label:'Stories publicados',hint:'24h efêmero'},
+];
+
+const STORAGE_KEY = 'envolve.socialselling.v1';
+const GOALS_KEY = 'envolve.socialselling.goals.v1';
+const LEADS_KEY = 'envolve.socialselling.leads.v1';
+
+const LEAD_STATUSES = [
+  {key:'novo',        label:'Novo',           color:'#94a3b8'},
+  {key:'conversa',    label:'Em conversa',    color:'#06b6d4'},
+  {key:'qualificado', label:'Qualificado',    color:'#7c5cff'},
+  {key:'reuniao',     label:'Reunião',        color:'#f59e0b'},
+  {key:'convertido',  label:'Convertido',     color:'#10b981'},
+  {key:'perdido',     label:'Perdido',        color:'#ef4444'},
+];
+const LEAD_SOURCES = [
+  {key:'instagram',   label:'Instagram'},
+  {key:'linkedin',    label:'LinkedIn'},
+  {key:'whatsapp',    label:'WhatsApp'},
+  {key:'indicacao',   label:'Indicação'},
+  {key:'outro',       label:'Outro'},
+];
+const MONTHS_PT = ['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+const MONTHS_FULL = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+// Default goals (configurable in UI)
+const DEFAULT_GOALS = {
+  conexoes_enviadas: {label:'Conexões enviadas', monthly:300, weekly:75, color:'#0A66C2'},
+  conexoes_aceitas:  {label:'Aceites/Seguidores',monthly:120, weekly:30, color:'#7c5cff'},
+  respostas:         {label:'Respostas',         monthly:60,  weekly:15, color:'#06b6d4'},
+  reunioes_agendadas:{label:'Reuniões agendadas',monthly:20,  weekly:5,  color:'#f59e0b'},
+  reunioes_realizadas:{label:'Reuniões feitas', monthly:16,  weekly:4,  color:'#10b981'},
+  vendas_qtd:        {label:'Vendas fechadas',  monthly:6,   weekly:2,  color:'#ec4899'},
+  vendas_valor:      {label:'Valor fechado (R$)',monthly:30000,weekly:7500,color:'#84cc16',isMoney:true},
+  posts_publicados:  {label:'Posts publicados', monthly:12,  weekly:3,  color:'#a855f7'},
+};
+
+// ============= STATE =============
+let data = {}; // { 'YYYY-MM-DD': { linkedin:{...}, instagram:{...}, whatsapp:{...}, conversao:{...}, conteudo:{...} } }
+let goals = {};
+let leads = []; // [{id, name, instagram, whatsapp, note, status, source, createdAt, updatedAt}]
+let charts = {};
+
+// ============= STORAGE =============
+function load(){
+  try{ data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }catch(e){ data = {}; }
+  try{ goals = JSON.parse(localStorage.getItem(GOALS_KEY)) || JSON.parse(JSON.stringify(DEFAULT_GOALS)); }catch(e){ goals = JSON.parse(JSON.stringify(DEFAULT_GOALS)); }
+  try{ leads = JSON.parse(localStorage.getItem(LEADS_KEY)) || []; }catch(e){ leads = []; }
+}
+function save(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  document.getElementById('syncBadge').textContent = 'Salvo · ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+function saveGoals(){
+  localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
+}
+function saveLeads(){
+  localStorage.setItem(LEADS_KEY, JSON.stringify(leads));
+  document.getElementById('syncBadge').textContent = 'Salvo · ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ============= HELPERS =============
+const fmtBRL = v => 'R$ ' + (v||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtNum = v => (v||0).toLocaleString('pt-BR');
+const fmtPct = v => (v||0).toFixed(1)+'%';
+const todayISO = () => { const d=new Date(); return d.toISOString().slice(0,10); };
+function parseISO(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); }
+function brDate(iso){ const d=parseISO(iso); return d.toLocaleDateString('pt-BR'); }
+function dayLabel(iso){ const d=parseISO(iso); return d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}); }
+function isWeekend(iso){ const d=parseISO(iso); return d.getDay()===0||d.getDay()===6; }
+function emptyDay(){
+  const d = {};
+  CHANNELS.forEach(c=>{
+    d[c.key] = {};
+    CHANNEL_ACTIVITIES.forEach(a=> d[c.key][a.key]=0);
+  });
+  d.conversao = {};
+  CONVERSION_ACTIVITIES.forEach(a=> d.conversao[a.key]=0);
+  d.conteudo = {};
+  CONTENT_ACTIVITIES.forEach(a=> d.conteudo[a.key]=0);
+  return d;
+}
+function getDay(iso){
+  if(!data[iso]) data[iso] = emptyDay();
+  return data[iso];
+}
+function dayHasData(iso){
+  if(!data[iso]) return false;
+  const d = data[iso];
+  for(const c of CHANNELS) for(const a of CHANNEL_ACTIVITIES) if(+d[c.key][a.key]>0) return true;
+  for(const a of CONVERSION_ACTIVITIES) if(+d.conversao[a.key]>0) return true;
+  for(const a of CONTENT_ACTIVITIES) if(+d.conteudo[a.key]>0) return true;
+  return false;
+}
+function toast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+// ============= TABS =============
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+    if(btn.dataset.panel==='dashboard') renderDashboard();
+    if(btn.dataset.panel==='goals') renderGoals();
+    if(btn.dataset.panel==='history') renderHistory();
+    if(btn.dataset.panel==='entry') updateEntrySummary();
+    if(btn.dataset.panel==='leads') renderLeads();
+  });
+});
+
+// ============= ENTRY =============
+function buildEntryForm(){
+  document.getElementById('entryDate').value = todayISO();
+  CHANNELS.forEach(c=>{
+    const wrap = document.getElementById('form-'+c.key);
+    wrap.innerHTML = '';
+    CHANNEL_ACTIVITIES.forEach(a=>{
+      const row = document.createElement('div');
+      row.className = 'field-row';
+      row.innerHTML = `
+        <label>${a.label}<small>${a.hint}</small></label>
+        <input type="number" min="0" step="1" data-section="${c.key}" data-field="${a.key}" placeholder="0">
+      `;
+      wrap.appendChild(row);
+    });
+  });
+
+  const fc = document.getElementById('form-conversao');
+  fc.innerHTML = '';
+  CONVERSION_ACTIVITIES.forEach(a=>{
+    const row = document.createElement('div');
+    row.className = 'field-row';
+    row.innerHTML = `
+      <label>${a.label}<small>${a.hint}</small></label>
+      <input type="number" min="0" step="${a.isMoney?'0.01':'1'}" data-section="conversao" data-field="${a.key}" placeholder="${a.isMoney?'0,00':'0'}">
+    `;
+    fc.appendChild(row);
+  });
+
+  const ft = document.getElementById('form-conteudo');
+  ft.innerHTML = '';
+  CONTENT_ACTIVITIES.forEach(a=>{
+    const row = document.createElement('div');
+    row.className = 'field-row';
+    row.innerHTML = `
+      <label>${a.label}<small>${a.hint}</small></label>
+      <input type="number" min="0" step="1" data-section="conteudo" data-field="${a.key}" placeholder="0">
+    `;
+    ft.appendChild(row);
+  });
+
+  document.getElementById('entryDate').addEventListener('change', loadEntryFor);
+  loadEntryFor();
+}
+function loadEntryFor(){
+  const iso = document.getElementById('entryDate').value;
+  const day = data[iso] || emptyDay();
+  document.querySelectorAll('#panel-entry input[type=number]').forEach(inp=>{
+    const sec = inp.dataset.section, field = inp.dataset.field;
+    const v = day[sec]?.[field] || 0;
+    inp.value = v || '';
+  });
+  updateEntrySummary();
+}
+function updateEntrySummary(){
+  const iso = document.getElementById('entryDate').value;
+  if(!dayHasData(iso)){
+    document.getElementById('entrySummary').textContent = `${brDate(iso)} · sem lançamento ainda`;
+    return;
+  }
+  const totals = computeDayTotals(data[iso]);
+  document.getElementById('entrySummary').innerHTML = `
+    ${brDate(iso)} ·
+    <strong>${fmtNum(totals.totalProspeccao)}</strong> prosp ·
+    <strong>${fmtNum(totals.totalRespostas)}</strong> resp ·
+    <strong>${fmtNum(totals.totalReunioes)}</strong> reuniões ·
+    <strong>${fmtBRL(totals.totalValor)}</strong> fechado
+  `;
+}
+function computeDayTotals(day){
+  let totalProspeccao=0, totalRespostas=0, totalEngaj=0;
+  CHANNELS.forEach(c=>{
+    totalProspeccao += (+day[c.key].conexoes_enviadas||0)+(+day[c.key].mensagens_iniciais||0)+(+day[c.key].followups||0)+(+day[c.key].dms||0);
+    totalRespostas += (+day[c.key].respostas||0);
+    totalEngaj += (+day[c.key].curtidas||0)+(+day[c.key].comentarios||0);
+  });
+  return {
+    totalProspeccao, totalRespostas, totalEngaj,
+    totalReunioes: +day.conversao.reunioes_realizadas||0,
+    totalValor: +day.conversao.vendas_valor||0,
+  };
+}
+
+document.getElementById('saveEntry').addEventListener('click',()=>{
+  const iso = document.getElementById('entryDate').value;
+  const day = getDay(iso);
+  document.querySelectorAll('#panel-entry input[type=number]').forEach(inp=>{
+    const sec = inp.dataset.section, field = inp.dataset.field;
+    if(!day[sec]) day[sec] = {};
+    day[sec][field] = +inp.value || 0;
+  });
+  save();
+  document.getElementById('lastSaved').textContent = 'Último save: ' + new Date().toLocaleTimeString('pt-BR');
+  updateEntrySummary();
+  toast('Lançamento salvo · ' + brDate(iso));
+});
+document.getElementById('clearEntry').addEventListener('click',()=>{
+  document.querySelectorAll('#panel-entry input[type=number]').forEach(i=>i.value='');
+});
+
+// ============= DASHBOARD =============
+function getPeriodDates(){
+  const period = document.getElementById('dashPeriod').value;
+  const today = new Date(); today.setHours(0,0,0,0);
+  let from, to=today;
+  if(period==='week'){
+    from = new Date(today); const day = (from.getDay()+6)%7; from.setDate(from.getDate()-day);
+  } else if(period==='month'){
+    from = new Date(today.getFullYear(),today.getMonth(),1);
+  } else if(period==='last30'){
+    from = new Date(today); from.setDate(from.getDate()-29);
+  } else if(period==='ytd'){
+    from = new Date(today.getFullYear(),0,1);
+  } else {
+    const keys = Object.keys(data).sort();
+    if(!keys.length){ from = today; to = today; }
+    else { from = parseISO(keys[0]); to = parseISO(keys[keys.length-1]); }
+  }
+  const dates = [];
+  for(let d=new Date(from); d<=to; d.setDate(d.getDate()+1)){
+    dates.push(d.toISOString().slice(0,10));
+  }
+  return {from, to, dates};
+}
+
+function aggregatePeriod(dates){
+  const agg = {
+    by_channel: {linkedin:{}, instagram:{}, whatsapp:{}},
+    conversao: {}, conteudo: {},
+    totals: {
+      conexoes_enviadas:0, conexoes_aceitas:0, mensagens_total:0, respostas:0, engajamento:0,
+      reunioes_agendadas:0, reunioes_realizadas:0, propostas:0, vendas_qtd:0, vendas_valor:0,
+      posts:0, reels:0, stories:0, conteudo_total:0,
+    }
+  };
+  CHANNELS.forEach(c=> CHANNEL_ACTIVITIES.forEach(a=> agg.by_channel[c.key][a.key]=0));
+  CONVERSION_ACTIVITIES.forEach(a=> agg.conversao[a.key]=0);
+  CONTENT_ACTIVITIES.forEach(a=> agg.conteudo[a.key]=0);
+
+  dates.forEach(iso=>{
+    const day = data[iso]; if(!day) return;
+    CHANNELS.forEach(c=>{
+      CHANNEL_ACTIVITIES.forEach(a=>{
+        const v = +day[c.key]?.[a.key] || 0;
+        agg.by_channel[c.key][a.key] += v;
+        if(a.key==='conexoes_enviadas') agg.totals.conexoes_enviadas+=v;
+        if(a.key==='conexoes_aceitas') agg.totals.conexoes_aceitas+=v;
+        if(['mensagens_iniciais','followups','dms'].includes(a.key)) agg.totals.mensagens_total+=v;
+        if(a.key==='respostas') agg.totals.respostas+=v;
+        if(['curtidas','comentarios'].includes(a.key)) agg.totals.engajamento+=v;
+      });
+    });
+    CONVERSION_ACTIVITIES.forEach(a=>{
+      const v = +day.conversao?.[a.key] || 0;
+      agg.conversao[a.key] += v;
+      if(a.key==='reunioes_agendadas') agg.totals.reunioes_agendadas+=v;
+      if(a.key==='reunioes_realizadas') agg.totals.reunioes_realizadas+=v;
+      if(a.key==='propostas_enviadas') agg.totals.propostas+=v;
+      if(a.key==='vendas_qtd') agg.totals.vendas_qtd+=v;
+      if(a.key==='vendas_valor') agg.totals.vendas_valor+=v;
+    });
+    CONTENT_ACTIVITIES.forEach(a=>{
+      const v = +day.conteudo?.[a.key] || 0;
+      agg.conteudo[a.key] += v;
+      if(a.key==='posts_publicados') agg.totals.posts+=v;
+      if(a.key==='reels_publicados') agg.totals.reels+=v;
+      if(a.key==='stories_publicados') agg.totals.stories+=v;
+      agg.totals.conteudo_total+=v;
+    });
+  });
+  return agg;
+}
+
+function renderDashboard(){
+  const {dates} = getPeriodDates();
+  const agg = aggregatePeriod(dates);
+  const t = agg.totals;
+
+  const taxaAceite = t.conexoes_enviadas>0 ? (t.conexoes_aceitas/t.conexoes_enviadas*100) : 0;
+  const taxaResposta = t.mensagens_total>0 ? (t.respostas/t.mensagens_total*100) : 0;
+  const taxaShow = t.reunioes_agendadas>0 ? (t.reunioes_realizadas/t.reunioes_agendadas*100) : 0;
+  const taxaClose = t.reunioes_realizadas>0 ? (t.vendas_qtd/t.reunioes_realizadas*100) : 0;
+  const ticketMedio = t.vendas_qtd>0 ? t.vendas_valor/t.vendas_qtd : 0;
+
+  // KPIs
+  const kg = document.getElementById('kpiGrid');
+  kg.innerHTML = '';
+  [
+    {label:'Conexões enviadas', value:fmtNum(t.conexoes_enviadas), color:'var(--linkedin)', sub:`${dates.length} dias`},
+    {label:'Taxa de aceite',    value:fmtPct(taxaAceite), color:'var(--accent)', sub:`${fmtNum(t.conexoes_aceitas)} aceites`},
+    {label:'Taxa de resposta',  value:fmtPct(taxaResposta), color:'#06b6d4', sub:`${fmtNum(t.respostas)} respostas`},
+    {label:'Reuniões realizadas', value:fmtNum(t.reunioes_realizadas), color:'var(--success)', sub:`${fmtPct(taxaShow)} show-up`},
+    {label:'Vendas fechadas',   value:fmtNum(t.vendas_qtd), color:'#ec4899', sub:`${fmtPct(taxaClose)} close rate`},
+    {label:'Receita gerada',    value:fmtBRL(t.vendas_valor), color:'#84cc16', sub:`Ticket médio ${fmtBRL(ticketMedio)}`},
+    {label:'Conteúdo publicado',value:fmtNum(t.conteudo_total), color:'var(--content)', sub:`${t.posts}p · ${t.reels}r · ${t.stories}s`},
+    {label:'Engajamento',       value:fmtNum(t.engajamento), color:'#a855f7', sub:'curtidas + comentários'},
+  ].forEach(k=>{
+    const el = document.createElement('div');
+    el.className='kpi'; el.style.setProperty('--c-accent', k.color);
+    el.innerHTML = `<div class="kpi-label">${k.label}</div><div class="kpi-value">${k.value}</div><div class="kpi-trend">${k.sub}</div>`;
+    kg.appendChild(el);
+  });
+
+  // FUNNEL
+  const funnel = [
+    {label:'Conexões enviadas', value:t.conexoes_enviadas, color:'#0A66C2', color2:'#1d4ed8'},
+    {label:'Aceites obtidos',  value:t.conexoes_aceitas, color:'#7c5cff', color2:'#5b8cff'},
+    {label:'Mensagens trocadas', value:t.mensagens_total, color:'#06b6d4', color2:'#0891b2'},
+    {label:'Respostas obtidas', value:t.respostas, color:'#10b981', color2:'#059669'},
+    {label:'Reuniões agendadas', value:t.reunioes_agendadas, color:'#f59e0b', color2:'#d97706'},
+    {label:'Reuniões realizadas', value:t.reunioes_realizadas, color:'#ec4899', color2:'#db2777'},
+    {label:'Vendas fechadas', value:t.vendas_qtd, color:'#84cc16', color2:'#65a30d'},
+  ];
+  const fwrap = document.getElementById('funnel');
+  fwrap.innerHTML = '';
+  const max = Math.max(...funnel.map(s=>s.value), 1);
+  funnel.forEach((s,i)=>{
+    const prev = i>0 ? funnel[i-1].value : null;
+    const conv = prev>0 ? (s.value/prev*100).toFixed(1)+'%' : (i===0?'—':'');
+    const widthPct = max>0 ? (s.value/max*100) : 0;
+    const row = document.createElement('div');
+    row.className='funnel-step';
+    row.style.setProperty('--c-step', s.color);
+    row.style.setProperty('--c-step-2', s.color2);
+    row.innerHTML = `
+      <div class="label">${s.label}</div>
+      <div class="bar-wrap"><div class="bar" style="width:${Math.max(widthPct,2)}%">${s.value>0?fmtNum(s.value):''}</div></div>
+      <div class="value">${fmtNum(s.value)}</div>
+      <div class="conv ${prev>0 && s.value/prev<0.1?'bad':''}">${conv}</div>
+    `;
+    fwrap.appendChild(row);
+  });
+
+  // CHART: by channel (stacked bar)
+  const channelLabels = CHANNELS.map(c=>c.label);
+  const datasets = ['conexoes_enviadas','conexoes_aceitas','mensagens_iniciais','respostas','curtidas','comentarios'].map((field,i)=>{
+    const palette = ['#0A66C2','#7c5cff','#06b6d4','#10b981','#f59e0b','#ec4899'];
+    return {
+      label: CHANNEL_ACTIVITIES.find(a=>a.key===field)?.label || field,
+      data: CHANNELS.map(c=>agg.by_channel[c.key][field]||0),
+      backgroundColor: palette[i],
+      borderRadius: 4,
+    };
+  });
+  drawChart('chartByChannel',{
+    type:'bar',
+    data:{labels:channelLabels,datasets},
+    options:{...chartOpts(),scales:{...chartOpts().scales,x:{...chartOpts().scales.x,stacked:true},y:{...chartOpts().scales.y,stacked:true}}}
+  });
+
+  // CHART: daily evolution
+  const dailyLabels = dates.map(d=>{const dt=parseISO(d);return dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})});
+  const dailyProsp = dates.map(iso=>{
+    const day = data[iso]; if(!day) return 0;
+    let s=0;
+    CHANNELS.forEach(c=>{ s += (+day[c.key]?.conexoes_enviadas||0) + (+day[c.key]?.mensagens_iniciais||0) + (+day[c.key]?.followups||0) + (+day[c.key]?.dms||0); });
+    return s;
+  });
+  const dailyMeet = dates.map(iso=> +data[iso]?.conversao?.reunioes_realizadas || 0);
+  const dailySales = dates.map(iso=> +data[iso]?.conversao?.vendas_valor || 0);
+  drawChart('chartDaily',{
+    type:'line',
+    data:{
+      labels:dailyLabels,
+      datasets:[
+        {label:'Prospecção',data:dailyProsp,borderColor:'#7c5cff',backgroundColor:'rgba(124,92,255,.12)',tension:.3,fill:true,yAxisID:'y'},
+        {label:'Reuniões',data:dailyMeet,borderColor:'#10b981',backgroundColor:'rgba(16,185,129,.05)',tension:.3,yAxisID:'y'},
+        {label:'Vendas (R$)',data:dailySales,borderColor:'#84cc16',backgroundColor:'rgba(132,204,22,.05)',tension:.3,borderDash:[4,4],yAxisID:'y1'},
+      ]
+    },
+    options:chartOpts({dual:true})
+  });
+
+  // CHART: prospecção por canal (donut)
+  const prospByChannel = CHANNELS.map(c=>({
+    label:c.label, color:c.color,
+    value:(agg.by_channel[c.key].conexoes_enviadas||0) + (agg.by_channel[c.key].mensagens_iniciais||0) + (agg.by_channel[c.key].dms||0)
+  })).filter(x=>x.value>0);
+  if(prospByChannel.length===0){
+    drawEmpty('chartProspMix','Sem prospecção no período');
+  } else {
+    drawChart('chartProspMix',{
+      type:'doughnut',
+      data:{labels:prospByChannel.map(x=>x.label),datasets:[{data:prospByChannel.map(x=>x.value),backgroundColor:prospByChannel.map(x=>x.color),borderColor:'#0a0e1a',borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{color:'#e8ecf3',font:{size:12}}}}}
+    });
+  }
+
+  // CHART: content
+  const contentData = [
+    {label:'Posts', value:t.posts, color:'#7c5cff'},
+    {label:'Reels', value:t.reels, color:'#E4405F'},
+    {label:'Stories', value:t.stories, color:'#f59e0b'},
+  ];
+  drawChart('chartContent',{
+    type:'bar',
+    data:{labels:contentData.map(x=>x.label),datasets:[{data:contentData.map(x=>x.value),backgroundColor:contentData.map(x=>x.color),borderRadius:6}]},
+    options:{...chartOpts(),plugins:{legend:{display:false}}}
+  });
+}
+
+function chartOpts(opts={}){
+  const base = {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{labels:{color:'#e8ecf3',font:{size:11}}},
+      tooltip:{backgroundColor:'#111827',borderColor:'#252f44',borderWidth:1,padding:10,titleColor:'#e8ecf3',bodyColor:'#e8ecf3'}
+    },
+    scales:{
+      x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8b95a8',font:{size:11}}},
+      y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8b95a8',font:{size:11}}}
+    }
+  };
+  if(opts.dual){
+    base.scales.y1 = {position:'right',grid:{drawOnChartArea:false},ticks:{color:'#8b95a8',font:{size:11},callback:v=>'R$'+(v>=1000?(v/1000).toFixed(0)+'k':v)}};
+  }
+  return base;
+}
+function drawChart(id, config){
+  if(charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  if(!ctx) return;
+  // restore canvas if previously replaced
+  if(ctx.tagName!=='CANVAS'){
+    const newC = document.createElement('canvas'); newC.id=id;
+    ctx.replaceWith(newC);
+  }
+  charts[id] = new Chart(document.getElementById(id), config);
+}
+function drawEmpty(id, msg){
+  if(charts[id]) charts[id].destroy();
+  const ctx = document.getElementById(id);
+  const wrap = document.createElement('div');
+  wrap.className='empty-state'; wrap.id=id;
+  wrap.innerHTML = `<div class="icon">📊</div>${msg}`;
+  ctx.replaceWith(wrap);
+}
+document.getElementById('dashPeriod').addEventListener('change', renderDashboard);
+
+// ============= GOALS =============
+function renderGoals(){
+  const period = document.getElementById('goalPeriod').value;
+  const wrap = document.getElementById('goalsConfig');
+  wrap.innerHTML = '';
+  Object.entries(goals).forEach(([key,g])=>{
+    const card = document.createElement('div');
+    card.className='goal-card';
+    card.innerHTML = `
+      <div class="goal-header"><span class="name">${g.label}</span></div>
+      <label style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.04em">Meta ${period==='week'?'semanal':'mensal'}</label>
+      <input type="number" min="0" step="${g.isMoney?'0.01':'1'}" value="${period==='week'?g.weekly:g.monthly}" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:8px;border-radius:6px;width:100%;margin-top:6px;font-family:inherit" data-key="${key}" data-period="${period}">
+    `;
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('change',()=>{
+      const k = inp.dataset.key, p = inp.dataset.period;
+      goals[k][p==='week'?'weekly':'monthly'] = +inp.value || 0;
+      saveGoals();
+      renderGoalsProgress();
+    });
+  });
+  renderGoalsProgress();
+}
+function renderGoalsProgress(){
+  const period = document.getElementById('goalPeriod').value;
+  const today = new Date(); today.setHours(0,0,0,0);
+  let from;
+  if(period==='week'){ from = new Date(today); const dy=(from.getDay()+6)%7; from.setDate(from.getDate()-dy); }
+  else { from = new Date(today.getFullYear(),today.getMonth(),1); }
+  const dates=[];
+  for(let d=new Date(from); d<=today; d.setDate(d.getDate()+1)) dates.push(d.toISOString().slice(0,10));
+  const agg = aggregatePeriod(dates);
+
+  const wrap = document.getElementById('goalsProgress');
+  wrap.innerHTML = '';
+  Object.entries(goals).forEach(([key,g])=>{
+    const target = period==='week'?g.weekly:g.monthly;
+    let actual = 0;
+    // map keys to agg
+    const sourceMap = {
+      conexoes_enviadas:agg.totals.conexoes_enviadas,
+      conexoes_aceitas:agg.totals.conexoes_aceitas,
+      respostas:agg.totals.respostas,
+      reunioes_agendadas:agg.totals.reunioes_agendadas,
+      reunioes_realizadas:agg.totals.reunioes_realizadas,
+      vendas_qtd:agg.totals.vendas_qtd,
+      vendas_valor:agg.totals.vendas_valor,
+      posts_publicados:agg.totals.posts,
+    };
+    actual = sourceMap[key] || 0;
+    const pct = target>0 ? Math.min(actual/target*100, 999) : 0;
+    const card = document.createElement('div');
+    card.className='goal-card';
+    card.style.setProperty('--c-goal', g.color);
+    card.style.setProperty('--c-goal-2', g.color);
+    const valFmt = v => g.isMoney ? fmtBRL(v) : fmtNum(v);
+    card.innerHTML = `
+      <div class="goal-header"><span class="name">${g.label}</span><span class="pct" style="color:${pct>=100?'var(--success)':pct>=70?'var(--warning)':'var(--danger)'}">${pct.toFixed(0)}%</span></div>
+      <div class="goal-progress"><div class="fill" style="width:${Math.min(pct,100)}%"></div></div>
+      <div class="goal-meta"><span>${valFmt(actual)} de ${valFmt(target)}</span><span>${pct>=100?'✓ batido':target-actual>0?`faltam ${valFmt(target-actual)}`:''}</span></div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+document.getElementById('goalPeriod').addEventListener('change', renderGoals);
+
+// ============= HISTORY =============
+function renderHistory(){
+  const monthSel = document.getElementById('histMonth');
+  const yearSel = document.getElementById('histYear');
+  const today = new Date();
+  if(!monthSel.options.length){
+    monthSel.innerHTML = '<option value="all">Todos</option>' + MONTHS_FULL.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
+    const yearsSet = new Set(Object.keys(data).map(d=>d.slice(0,4)));
+    yearsSet.add(String(today.getFullYear()));
+    const years = [...yearsSet].sort();
+    yearSel.innerHTML = years.map(y=>`<option value="${y}">${y}</option>`).join('');
+    monthSel.value = today.getMonth();
+    yearSel.value = today.getFullYear();
+    monthSel.addEventListener('change', renderHistoryTable);
+    yearSel.addEventListener('change', renderHistoryTable);
+  }
+  renderHistoryTable();
+}
+function renderHistoryTable(){
+  const month = document.getElementById('histMonth').value;
+  const year = document.getElementById('histYear').value;
+  const headG = document.getElementById('histHeadGroup');
+  const head = document.getElementById('histHead');
+
+  // Group header
+  headG.innerHTML = '<th></th>' +
+    `<th class="group-li" colspan="${CHANNEL_ACTIVITIES.length}" style="text-align:center;color:var(--linkedin)">LinkedIn</th>`+
+    `<th class="group-ig" colspan="${CHANNEL_ACTIVITIES.length}" style="text-align:center;color:var(--instagram)">Instagram</th>`+
+    `<th class="group-wa" colspan="${CHANNEL_ACTIVITIES.length}" style="text-align:center;color:var(--whatsapp)">WhatsApp</th>`+
+    `<th class="group-cv" colspan="${CONVERSION_ACTIVITIES.length}" style="text-align:center;color:var(--conversion)">Conversão</th>`+
+    `<th class="group-ct" colspan="${CONTENT_ACTIVITIES.length}" style="text-align:center;color:var(--content)">Conteúdo</th>`;
+
+  let html = '<th>Data</th>';
+  CHANNELS.forEach(c=>{
+    CHANNEL_ACTIVITIES.forEach(a=>{
+      const short = a.key.replace('conexoes_','con.').replace('mensagens_iniciais','msg').replace('followups','f-up').replace('respostas','resp').replace('curtidas','♥').replace('comentarios','💬').replace('dms','dm').replace('aceitas','aceite').replace('enviadas','env');
+      html += `<th title="${c.label}: ${a.label}">${short}</th>`;
+    });
+  });
+  CONVERSION_ACTIVITIES.forEach(a=>{
+    const short = a.key.replace('reunioes_','reu.').replace('agendadas','agend.').replace('realizadas','real.').replace('propostas_enviadas','prop.').replace('vendas_qtd','vendas').replace('vendas_valor','R$');
+    html += `<th title="${a.label}">${short}</th>`;
+  });
+  CONTENT_ACTIVITIES.forEach(a=>{
+    const short = a.key.replace('_publicados','');
+    html += `<th title="${a.label}">${short}</th>`;
+  });
+  head.innerHTML = html;
+
+  // body
+  const tbody = document.querySelector('#histTable tbody');
+  tbody.innerHTML = '';
+  const keys = Object.keys(data).filter(iso=>{
+    if(year && iso.slice(0,4)!==year) return false;
+    if(month!=='all' && +iso.slice(5,7)-1 !== +month) return false;
+    return true;
+  }).sort();
+
+  if(!keys.length){
+    tbody.innerHTML = `<tr><td colspan="100" style="text-align:center;padding:30px;color:var(--text-dim)">Sem registros nesse período. Vá na aba "Lançamento Diário" e comece.</td></tr>`;
+    document.getElementById('histSummary').textContent = '';
+    return;
+  }
+
+  let totalVendas=0, totalValor=0, totalReunioes=0;
+  keys.forEach(iso=>{
+    const day = data[iso];
+    let row = `<td class="${isWeekend(iso)?'weekend':''}">${dayLabel(iso)}</td>`;
+    CHANNELS.forEach(c=>{
+      CHANNEL_ACTIVITIES.forEach(a=>{
+        const v = +day[c.key]?.[a.key]||0;
+        row += `<td class="editable ${v?'has-value':'zero'}" contenteditable="true" data-iso="${iso}" data-section="${c.key}" data-field="${a.key}">${v||''}</td>`;
+      });
+    });
+    CONVERSION_ACTIVITIES.forEach(a=>{
+      const v = +day.conversao?.[a.key]||0;
+      const display = a.isMoney ? (v?v.toFixed(2).replace('.',','):'') : (v||'');
+      row += `<td class="editable ${v?'has-value':'zero'}" contenteditable="true" data-iso="${iso}" data-section="conversao" data-field="${a.key}" ${a.isMoney?'data-money="1"':''}>${display}</td>`;
+    });
+    CONTENT_ACTIVITIES.forEach(a=>{
+      const v = +day.conteudo?.[a.key]||0;
+      row += `<td class="editable ${v?'has-value':'zero'}" contenteditable="true" data-iso="${iso}" data-section="conteudo" data-field="${a.key}">${v||''}</td>`;
+    });
+    totalVendas += +day.conversao?.vendas_qtd||0;
+    totalValor += +day.conversao?.vendas_valor||0;
+    totalReunioes += +day.conversao?.reunioes_realizadas||0;
+    const tr = document.createElement('tr'); tr.innerHTML = row; tbody.appendChild(tr);
+  });
+
+  document.getElementById('histSummary').textContent =
+    `${keys.length} dias · ${fmtNum(totalReunioes)} reuniões · ${fmtNum(totalVendas)} vendas · ${fmtBRL(totalValor)}`;
+
+  tbody.querySelectorAll('td.editable').forEach(td=>{
+    td.addEventListener('blur',()=>{
+      const iso = td.dataset.iso, sec = td.dataset.section, field = td.dataset.field;
+      let v = td.textContent.trim().replace(',','.');
+      v = parseFloat(v) || 0;
+      const day = getDay(iso);
+      if(!day[sec]) day[sec] = {};
+      day[sec][field] = v;
+      save();
+      renderHistoryTable();
+    });
+    td.addEventListener('keydown',e=>{
+      if(e.key==='Enter'){ e.preventDefault(); td.blur(); }
+    });
+  });
+}
+
+// ============= LEADS =============
+function uid(){ return 'lead-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8); }
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function leadStatusObj(key){ return LEAD_STATUSES.find(s=>s.key===key) || LEAD_STATUSES[0]; }
+function cleanInstagram(v){ if(!v) return ''; v=v.trim().replace(/^@/,'').replace(/^https?:\/\/(www\.)?instagram\.com\//,'').replace(/\/$/,''); return v; }
+function cleanWhatsapp(v){ if(!v) return ''; return v.replace(/\D/g,''); }
+function fmtWhatsapp(v){
+  const d = cleanWhatsapp(v);
+  if(!d) return '';
+  if(d.length===13) return `+${d.slice(0,2)} (${d.slice(2,4)}) ${d.slice(4,9)}-${d.slice(9)}`;
+  if(d.length===11) return `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;
+  if(d.length===10) return `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+  return d;
+}
+
+function openModal(html){ document.getElementById('modalContent').innerHTML=html; document.getElementById('modal').classList.add('show'); }
+function closeModal(){ document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
+
+function getFilteredLeads(){
+  const q = (document.getElementById('leadSearch')?.value || '').toLowerCase().trim();
+  const stf = document.getElementById('leadStatusFilter')?.value || 'all';
+  const srf = document.getElementById('leadSourceFilter')?.value || 'all';
+  return leads.filter(l=>{
+    if(stf!=='all' && l.status!==stf) return false;
+    if(srf!=='all' && l.source!==srf) return false;
+    if(q){
+      const hay = [l.name, l.instagram, l.whatsapp, l.note].map(x=>(x||'').toLowerCase()).join(' ');
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  }).sort((a,b)=> (b.updatedAt||b.createdAt||'').localeCompare(a.updatedAt||a.createdAt||''));
+}
+
+function renderLeads(){
+  const wrap = document.getElementById('leadsList');
+  if(!wrap) return;
+  wrap.innerHTML='';
+  const filtered = getFilteredLeads();
+
+  // Summary
+  const counts = {};
+  LEAD_STATUSES.forEach(s=> counts[s.key]=0);
+  leads.forEach(l=>{ if(counts[l.status]!==undefined) counts[l.status]++; });
+  const summary = `${leads.length} leads no total · ` + LEAD_STATUSES.filter(s=>counts[s.key]>0).map(s=>`<span style="color:${s.color}">●</span> ${counts[s.key]} ${s.label.toLowerCase()}`).join(' · ');
+  document.getElementById('leadsSummary').innerHTML = leads.length ? summary : 'Nenhum lead cadastrado ainda. Comece adicionando o primeiro.';
+
+  if(!filtered.length){
+    wrap.innerHTML = `<div class="card"><div class="empty-state"><div class="icon">👥</div>${leads.length?'Nenhum lead com esses filtros.':'Nenhum lead cadastrado. Clique em "Novo lead" pra começar.'}</div></div>`;
+    return;
+  }
+
+  const grid = document.createElement('div'); grid.className='lead-grid';
+  filtered.forEach(l=>{
+    const st = leadStatusObj(l.status);
+    const ig = cleanInstagram(l.instagram);
+    const waDigits = cleanWhatsapp(l.whatsapp);
+    const card = document.createElement('div');
+    card.className='lead-card';
+    card.style.setProperty('--c-status', st.color);
+    card.innerHTML = `
+      <div class="lead-header">
+        <div>
+          <div class="lead-name">${escapeHtml(l.name)}</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${l.source?LEAD_SOURCES.find(s=>s.key===l.source)?.label||l.source:'origem não informada'}</div>
+        </div>
+        <span class="lead-status" style="background:${st.color}">${st.label}</span>
+      </div>
+      <div class="lead-contacts">
+        ${ig ? `<a href="https://instagram.com/${encodeURIComponent(ig)}" target="_blank" rel="noopener" class="lead-contact"><span class="ico ig">IG</span>@${escapeHtml(ig)}</a>` : ''}
+        ${waDigits ? `<a href="https://wa.me/${waDigits}" target="_blank" rel="noopener" class="lead-contact"><span class="ico wa">WA</span>${escapeHtml(fmtWhatsapp(waDigits))}</a>` : ''}
+        ${!ig && !waDigits ? `<div class="lead-contact" style="color:var(--text-muted);font-style:italic">sem contatos cadastrados</div>` : ''}
+      </div>
+      ${l.note ? `<div class="lead-note">${escapeHtml(l.note)}</div>` : ''}
+      <div class="lead-status-quick">
+        ${LEAD_STATUSES.map(s=>`<button data-set-status="${l.id}" data-status="${s.key}" class="${l.status===s.key?'active':''}" style="--c-active:${s.color}">${s.label}</button>`).join('')}
+      </div>
+      <div class="lead-meta">
+        <span>Criado ${l.createdAt?new Date(l.createdAt).toLocaleDateString('pt-BR'):'—'}</span>
+        <span>${l.updatedAt && l.updatedAt!==l.createdAt ? 'Atualizado ' + new Date(l.updatedAt).toLocaleDateString('pt-BR'):''}</span>
+      </div>
+      <div class="lead-actions">
+        <button data-edit="${l.id}">Editar</button>
+        <button data-del="${l.id}" class="del">Excluir</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+  wrap.appendChild(grid);
+
+  // Wire events
+  grid.querySelectorAll('[data-set-status]').forEach(b=> b.addEventListener('click',()=>{
+    const l = leads.find(x=>x.id===b.dataset.setStatus);
+    if(l){ l.status = b.dataset.status; l.updatedAt = new Date().toISOString(); saveLeads(); renderLeads(); toast('Status atualizado'); }
+  }));
+  grid.querySelectorAll('[data-edit]').forEach(b=> b.addEventListener('click',()=>leadModal(leads.find(l=>l.id===b.dataset.edit))));
+  grid.querySelectorAll('[data-del]').forEach(b=> b.addEventListener('click',()=>{
+    const l = leads.find(x=>x.id===b.dataset.del); if(!l) return;
+    if(confirm(`Excluir lead "${l.name}"? Essa ação não pode ser desfeita.`)){
+      leads = leads.filter(x=>x.id!==b.dataset.del);
+      saveLeads(); renderLeads(); toast('Lead excluído');
+    }
+  }));
+}
+
+function leadModal(lead){
+  const isNew = !lead;
+  lead = lead || {id:uid(),name:'',instagram:'',whatsapp:'',note:'',status:'novo',source:'instagram',createdAt:new Date().toISOString()};
+  const statusOpts = LEAD_STATUSES.map(s=>`<option value="${s.key}" ${lead.status===s.key?'selected':''}>${s.label}</option>`).join('');
+  const sourceOpts = LEAD_SOURCES.map(s=>`<option value="${s.key}" ${lead.source===s.key?'selected':''}>${s.label}</option>`).join('');
+  openModal(`
+    <h3>${isNew?'Novo lead':'Editar lead'}</h3>
+    <div class="form-grid">
+      <div class="form-group" style="grid-column:1/-1"><label>Nome *</label><input type="text" id="m-name" value="${escapeHtml(lead.name)}" placeholder="Ex: João Silva"></div>
+      <div class="form-group"><label>Instagram</label><input type="text" id="m-ig" value="${escapeHtml(lead.instagram||'')}" placeholder="@usuario ou link"></div>
+      <div class="form-group"><label>WhatsApp</label><input type="tel" id="m-wa" value="${escapeHtml(lead.whatsapp||'')}" placeholder="(11) 99999-9999"></div>
+      <div class="form-group"><label>Status</label><select id="m-status">${statusOpts}</select></div>
+      <div class="form-group"><label>Origem</label><select id="m-source">${sourceOpts}</select></div>
+      <div class="form-group" style="grid-column:1/-1"><label>Nota / observações</label><textarea id="m-note" placeholder="Ex: Interessada em assessoria pra clínica de estética. Indicada pela Maria. Já curtiu 3 posts." style="min-height:90px">${escapeHtml(lead.note||'')}</textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="m-save">Salvar</button>
+    </div>
+  `);
+  setTimeout(()=>document.getElementById('m-name').focus(),50);
+  document.getElementById('m-save').addEventListener('click',()=>{
+    const name = document.getElementById('m-name').value.trim();
+    if(!name){ toast('Nome é obrigatório','error'); return; }
+    lead.name = name;
+    lead.instagram = cleanInstagram(document.getElementById('m-ig').value);
+    lead.whatsapp = cleanWhatsapp(document.getElementById('m-wa').value);
+    lead.status = document.getElementById('m-status').value;
+    lead.source = document.getElementById('m-source').value;
+    lead.note = document.getElementById('m-note').value.trim();
+    lead.updatedAt = new Date().toISOString();
+    if(isNew) leads.push(lead);
+    saveLeads(); renderLeads();
+    closeModal(); toast(isNew?'Lead cadastrado':'Lead atualizado');
+  });
+}
+
+document.getElementById('addLeadBtn').addEventListener('click',()=>leadModal());
+['leadSearch','leadStatusFilter','leadSourceFilter'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('input', renderLeads);
+  if(el) el.addEventListener('change', renderLeads);
+});
+
+// ============= EXPORT/IMPORT =============
+function exportCsv(){
+  const cols = ['Data'];
+  CHANNELS.forEach(c=> CHANNEL_ACTIVITIES.forEach(a=> cols.push(`${c.label}: ${a.label}`)));
+  CONVERSION_ACTIVITIES.forEach(a=> cols.push(`Conversão: ${a.label}`));
+  CONTENT_ACTIVITIES.forEach(a=> cols.push(`Conteúdo: ${a.label}`));
+  const lines = [cols.join(';')];
+  Object.keys(data).sort().forEach(iso=>{
+    const day = data[iso];
+    const row = [iso];
+    CHANNELS.forEach(c=> CHANNEL_ACTIVITIES.forEach(a=> row.push(+day[c.key]?.[a.key]||0)));
+    CONVERSION_ACTIVITIES.forEach(a=>{
+      const v = +day.conversao?.[a.key]||0;
+      row.push(a.isMoney ? v.toFixed(2).replace('.',',') : v);
+    });
+    CONTENT_ACTIVITIES.forEach(a=> row.push(+day.conteudo?.[a.key]||0));
+    lines.push(row.join(';'));
+  });
+  const blob = new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  download(blob, `social-selling-${todayISO()}.csv`);
+  toast('CSV exportado');
+}
+function exportJson(){
+  const blob = new Blob([JSON.stringify({data,goals,leads},null,2)],{type:'application/json'});
+  download(blob, `social-selling-${todayISO()}.json`);
+  toast('JSON exportado');
+}
+function exportLeadsCsv(){
+  const lines = ['Nome;Instagram;WhatsApp;Status;Origem;Nota;Criado em'];
+  leads.forEach(l=>{
+    const row = [
+      l.name||'',
+      l.instagram?'@'+l.instagram:'',
+      l.whatsapp?fmtWhatsapp(l.whatsapp):'',
+      leadStatusObj(l.status).label,
+      l.source?LEAD_SOURCES.find(s=>s.key===l.source)?.label||l.source:'',
+      (l.note||'').replace(/[\r\n;]/g,' '),
+      l.createdAt?new Date(l.createdAt).toLocaleDateString('pt-BR'):''
+    ];
+    lines.push(row.join(';'));
+  });
+  const blob = new Blob(['\uFEFF'+lines.join('\n')],{type:'text/csv;charset=utf-8'});
+  download(blob, `leads-${todayISO()}.csv`);
+  toast('Leads exportados em CSV');
+}
+function download(blob, name){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),100);
+}
+document.getElementById('exportCsv').addEventListener('click', exportCsv);
+document.getElementById('exportJson').addEventListener('click', exportJson);
+document.getElementById('exportLeadsCsv').addEventListener('click', exportLeadsCsv);
+document.getElementById('importJson').addEventListener('change', e=>{
+  const file = e.target.files[0]; if(!file) return;
+  const r = new FileReader();
+  r.onload = ()=>{
+    try{
+      const parsed = JSON.parse(r.result);
+      if(parsed.data) data = parsed.data;
+      if(parsed.goals) goals = parsed.goals;
+      if(parsed.leads) leads = parsed.leads;
+      save(); saveGoals(); saveLeads();
+      toast(`JSON importado · ${Object.keys(data).length} dias · ${leads.length} leads`);
+      loadEntryFor();
+    }catch(err){ toast('Erro: '+err.message,'error'); }
+  };
+  r.readAsText(file);
+});
+document.getElementById('resetData').addEventListener('click',()=>{
+  if(confirm('Tem certeza? Apaga TODOS os dados, metas e leads. Faça backup antes.')){
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(GOALS_KEY);
+    localStorage.removeItem(LEADS_KEY);
+    location.reload();
+  }
+});
+
+// ============= INIT =============
+load();
+buildEntryForm();
+</script>
+</body>
+</html>
