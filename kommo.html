@@ -207,10 +207,12 @@ async function api(path, opts={}){
   let url, headers;
   if(useProxy){
     url = `/.netlify/functions/kommo-proxy?path=${encodeURIComponent(path)}`;
+    const sess = window.envolveAuthToken || localStorage.getItem('envolve.auth.token');
     headers = {
       'X-Kommo-Token': state.token,
       'X-Kommo-Subdomain': state.subdomain,
       'Content-Type':'application/json',
+      ...(sess ? {'Authorization':'Bearer '+sess} : {}),
       ...(opts.headers||{})
     };
   } else {

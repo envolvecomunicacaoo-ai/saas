@@ -1194,10 +1194,12 @@ async function asaasApi(path, opts={}){
   let url, headers;
   if(asaasUseProxy){
     url = `/.netlify/functions/asaas-proxy?path=${encodeURIComponent(path)}`;
+    const sess = window.envolveAuthToken || localStorage.getItem('envolve.auth.token');
     headers = {
       'X-Asaas-Key': asaasState.apiKey,
       'X-Asaas-Env': asaasState.env,
       'Content-Type':'application/json',
+      ...(sess ? {'Authorization':'Bearer '+sess} : {}),
       ...(opts.headers||{})
     };
   } else {
