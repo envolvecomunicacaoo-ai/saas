@@ -1,7 +1,9 @@
 // Proxy serverless pra Kommo CRM API V4
-// Contorna CORS chamando do servidor Netlify ao invés do browser
-// Recebe headers: x-kommo-token, x-kommo-subdomain
-// Recebe path: /api/v4/...  via query ?path=
+// Modo equipe: se KOMMO_TOKEN + KOMMO_SUBDOMAIN estiverem nas env vars, usa elas
+// (ignora headers do cliente). Modo individual: cliente manda X-Kommo-Token
+// e X-Kommo-Subdomain.
+//
+// Health probe: ?path=__teamcheck__ → { teamMode: bool, subdomain: string|null }
 
 exports.handler = async (event) => {
   const corsHeaders = {
@@ -11,7 +13,6 @@ exports.handler = async (event) => {
     'Access-Control-Max-Age': '86400'
   };
 
-  // CORS preflight
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers: corsHeaders, body: '' };
   }
@@ -29,19 +30,32 @@ exports.handler = async (event) => {
     }
   }
 
-  const token = event.headers['x-kommo-token'] || event.headers['X-Kommo-Token'];
-  const subdomain = event.headers['x-kommo-subdomain'] || event.headers['X-Kommo-Subdomain'];
+  const envToken = process.env.KOMMO_TOKEN;
+  const envSub = process.env.KOMMO_SUBDOMAIN;
+  const teamMode = !!(envToken && envSub);
+
   const path = event.queryStringParameters?.path || '/';
+
+  // Health probe — frontend usa pra decidir UI
+  if (path === '__teamcheck__') {
+    return {
+      statusCode: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ teamMode, subdomain: teamMode ? envSub : null })
+    };
+  }
+
+  const token = teamMode ? envToken : (event.headers['x-kommo-token'] || event.headers['X-Kommo-Token']);
+  const subdomain = teamMode ? envSub : (event.headers['x-kommo-subdomain'] || event.headers['X-Kommo-Subdomain']);
 
   if (!token || !subdomain) {
     return {
       statusCode: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ error: 'Missing X-Kommo-Token or X-Kommo-Subdomain headers' })
+      body: JSON.stringify({ error: 'Missing X-Kommo-Token or X-Kommo-Subdomain headers (or KOMMO_TOKEN/KOMMO_SUBDOMAIN env vars)' })
     };
   }
 
-  // Sanitiza subdomínio
   const cleanSub = subdomain.replace(/[^a-z0-9-]/gi, '').toLowerCase();
   if (!cleanSub) {
     return {

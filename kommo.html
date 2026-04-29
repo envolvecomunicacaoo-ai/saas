@@ -168,6 +168,7 @@ let state = {
   selectedPipeline:'', selectedChat:'', activeTab:'funnel',
   lastSync:''
 };
+let teamMode = false; // setado via __teamcheck__ no boot
 
 function load(){ try{ Object.assign(state, JSON.parse(localStorage.getItem(STORAGE_KEY))||{}); }catch(e){} }
 function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
@@ -180,13 +181,13 @@ function openModal(html){ document.getElementById('modalContent').innerHTML=html
 function closeModal(){ document.getElementById('modal').classList.remove('show'); }
 document.getElementById('modal').addEventListener('click',e=>{ if(e.target.id==='modal') closeModal(); });
 
-function isConnected(){ return state.token && state.subdomain && state.token.length>20; }
+function isConnected(){ return teamMode || (state.token && state.subdomain && state.token.length>20); }
 function updateConnStatus(){
   const b = document.getElementById('connStatus');
   const openBtn = document.getElementById('kommoOpenBtn');
   if(isConnected()){
     b.className='badge ok';
-    b.textContent = 'Conectado: '+state.subdomain+'.kommo.com';
+    b.textContent = (teamMode?'Equipe: ':'Conectado: ')+(state.subdomain||'')+'.kommo.com';
     document.getElementById('refreshBtn').style.display = 'inline-flex';
     if(openBtn){
       openBtn.href = `https://${state.subdomain}.kommo.com/dashboard?sel=all&period=week`;
@@ -209,12 +210,15 @@ async function api(path, opts={}){
     url = `/.netlify/functions/kommo-proxy?path=${encodeURIComponent(path)}`;
     const sess = window.envolveAuthToken || localStorage.getItem('envolve.auth.token');
     headers = {
-      'X-Kommo-Token': state.token,
-      'X-Kommo-Subdomain': state.subdomain,
       'Content-Type':'application/json',
       ...(sess ? {'Authorization':'Bearer '+sess} : {}),
       ...(opts.headers||{})
     };
+    // Em modo equipe os tokens vêm das env vars no servidor; só manda do cliente em modo individual
+    if(!teamMode){
+      headers['X-Kommo-Token'] = state.token;
+      headers['X-Kommo-Subdomain'] = state.subdomain;
+    }
   } else {
     url = `https://${state.subdomain}.kommo.com/api/v4${path}`;
     headers = {
@@ -290,9 +294,9 @@ function render(){
   if(!isConnected()){
     c.innerHTML = `
       <div class="setup-card">
-        <h3>Conecte seu Kommo CRM</h3>
-        <p>Pra ver funil, calendário e chats no Envolve, preciso de access token + subdomínio. Tudo fica salvo apenas no seu navegador.</p>
-        <button class="btn btn-primary" onclick="document.getElementById('openSetup').click()">⚙ Configurar agora</button>
+        <h3>Kommo não configurado</h3>
+        <p>Configuração de equipe não foi encontrada. Defina as env vars <code>KOMMO_TOKEN</code> e <code>KOMMO_SUBDOMAIN</code> no Netlify, ou conecte sua conta individual abaixo.</p>
+        <button class="btn btn-primary" onclick="document.getElementById('openSetup').click()">⚙ Configurar individualmente</button>
       </div>
     `;
     return;
@@ -604,6 +608,25 @@ function renderInbox(){
 load();
 updateConnStatus();
 render();
+
+// Detecta modo equipe (env vars no Netlify) e ajusta UI
+(async()=>{
+  if(!useProxy) return;
+  try{
+    const sess = window.envolveAuthToken || localStorage.getItem('envolve.auth.token');
+    const r = await fetch('/.netlify/functions/kommo-proxy?path=__teamcheck__', {
+      headers: sess ? {'Authorization':'Bearer '+sess} : {}
+    });
+    if(!r.ok) return;
+    const j = await r.json();
+    if(j.teamMode){
+      teamMode = true;
+      if(j.subdomain) state.subdomain = j.subdomain;
+      updateConnStatus();
+      render();
+    }
+  }catch(e){ /* sem modo equipe — segue fluxo individual */ }
+})();
 </script>
 </body>
 </html>

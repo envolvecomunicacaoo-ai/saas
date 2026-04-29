@@ -1182,9 +1182,30 @@ function runRecurrent(){
 // =============== ASAAS INTEGRATION ===============
 const ASAAS_KEY = 'envolve.asaas.v1';
 let asaasState = { apiKey:'', env:'production', balance:null, payments:[], summary:null, lastSync:'' };
+let asaasTeamMode = false; // setado via __teamcheck__ no boot
 function loadAsaas(){ try{ Object.assign(asaasState, JSON.parse(localStorage.getItem(ASAAS_KEY))||{}); }catch(e){} }
 function saveAsaas(){ localStorage.setItem(ASAAS_KEY, JSON.stringify(asaasState)); }
 loadAsaas();
+
+// Detecta modo equipe (env vars no Netlify)
+(async()=>{
+  if(location.protocol.startsWith('file') || location.hostname.match(/^(localhost|127\.|192\.168|10\.)/)) return;
+  try{
+    const sess = window.envolveAuthToken || localStorage.getItem('envolve.auth.token');
+    const r = await fetch('/.netlify/functions/asaas-proxy?path=__teamcheck__', {
+      headers: sess ? {'Authorization':'Bearer '+sess} : {}
+    });
+    if(!r.ok) return;
+    const j = await r.json();
+    if(j.teamMode){
+      asaasTeamMode = true;
+      if(j.env) asaasState.env = j.env;
+      // Se a aba Asaas estiver visível, re-renderiza
+      const panel = document.getElementById('panel-asaas');
+      if(panel && panel.classList.contains('active')) renderAsaas();
+    }
+  }catch(e){}
+})();
 
 // Detecta se está em ambiente que precisa de proxy CORS (Netlify hospedado)
 const asaasUseProxy = !location.protocol.startsWith('file') && !location.hostname.match(/^(localhost|127\.|192\.168|10\.)/);
@@ -1196,12 +1217,14 @@ async function asaasApi(path, opts={}){
     url = `/.netlify/functions/asaas-proxy?path=${encodeURIComponent(path)}`;
     const sess = window.envolveAuthToken || localStorage.getItem('envolve.auth.token');
     headers = {
-      'X-Asaas-Key': asaasState.apiKey,
-      'X-Asaas-Env': asaasState.env,
       'Content-Type':'application/json',
       ...(sess ? {'Authorization':'Bearer '+sess} : {}),
       ...(opts.headers||{})
     };
+    if(!asaasTeamMode){
+      headers['X-Asaas-Key'] = asaasState.apiKey;
+      headers['X-Asaas-Env'] = asaasState.env;
+    }
   } else {
     url = asaasBase()+path;
     headers = {
@@ -1218,7 +1241,7 @@ async function asaasApi(path, opts={}){
   return res.json();
 }
 
-function isAsaasConnected(){ return asaasState.apiKey && asaasState.apiKey.length>20; }
+function isAsaasConnected(){ return asaasTeamMode || (asaasState.apiKey && asaasState.apiKey.length>20); }
 
 function renderAsaas(){
   const c = document.getElementById('asaasContent');
@@ -1274,19 +1297,20 @@ function renderAsaas(){
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
         <div>
-          <h2 style="font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:2px">💳 Asaas <span style="font-size:10px;background:#00C896;color:white;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em">${asaasState.env==='sandbox'?'Sandbox':'Produção'}</span></h2>
+          <h2 style="font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px;margin-bottom:2px;flex-wrap:wrap">💳 Asaas <span style="font-size:10px;background:#00C896;color:white;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em">${asaasState.env==='sandbox'?'Sandbox':'Produção'}</span>${asaasTeamMode?'<span style="font-size:10px;background:#3B82F6;color:white;padding:2px 8px;border-radius:99px;text-transform:uppercase;letter-spacing:.04em">Equipe</span>':''}</h2>
           <p style="font-size:12px;color:var(--text-dim)" id="asaasLastSync">${asaasState.lastSync?'Última sincronização: '+new Date(asaasState.lastSync).toLocaleString('pt-BR'):''}</p>
         </div>
         <div style="display:flex;gap:8px">
           <button class="btn btn-sm" id="asaasReload">↻ Sincronizar</button>
-          <button class="btn btn-sm" id="asaasDisconnect" style="color:var(--danger)">Desconectar</button>
+          ${asaasTeamMode?'':'<button class="btn btn-sm" id="asaasDisconnect" style="color:var(--danger)">Desconectar</button>'}
         </div>
       </div>
     </div>
     <div id="asaasData"><div class="empty-state"><div class="icon"><span class="loading" style="display:inline-block;width:14px;height:14px;border:2px solid var(--text-dim);border-top-color:#00C896;border-radius:50%;animation:spin 1s linear infinite"></span></div>Sincronizando com Asaas...</div></div>
   `;
   document.getElementById('asaasReload').addEventListener('click', loadAsaasData);
-  document.getElementById('asaasDisconnect').addEventListener('click',()=>{
+  const dc = document.getElementById('asaasDisconnect');
+  if(dc) dc.addEventListener('click',()=>{
     if(confirm('Desconectar Asaas? Sua API Key será removida do navegador.')){
       asaasState = {apiKey:'',env:'production',balance:null,payments:[],summary:null,lastSync:''};
       saveAsaas(); renderAsaas();
